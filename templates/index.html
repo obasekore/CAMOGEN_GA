@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Genetic Algorithm Interactive Design</title>
+    <style>
+      /* Add your custom styles here */
+    </style>
+  </head>
+  <body>
+    <!-- Add your HTML elements for user interaction here -->
+    <button id="startButton">Start GA</button>
+    <div id="resultsContainer">
+      <form action="/evolve" method="GET" enctype="text/plain">
+        {% for i in [1,2,3,4,5] %}
+        <div id="population_{{i}}">
+          <img src="https://picsum.photos/id/{{i}}/200" /><br />
+          <input
+            readonly="readonly"
+            type="number"
+            id="fitness_{{i}}"
+            name="fitness[{{i}}]"
+            value="0"
+            max="100"
+            step="0.01"
+          />
+        </div>
+        {% endfor %}
+        <input type="submit" value="Evolve" name="submit" />
+      </form>
+    </div>
+
+    <script>
+      // AJAX call to the backend to initiate the GA
+      let resultContainer = document.getElementById("resultsContainer");
+      document
+        .getElementById("startButton")
+        .addEventListener("click", function () {
+          var xhr = new XMLHttpRequest();
+          xhr.open("GET", "/start_ga", true);
+          xhr.onreadystatechange = function () {
+            if (xhr.readyState === 4 && xhr.status === 200) {
+              // Handle the response from the backend, if needed
+              //<b>jhjkh${xhr.responseText}</b>
+              resultContainer.innerHTML = `<img src="https://picsum.photos/id/1/200" />`;
+            }
+          };
+          xhr.send();
+        });
+
+        {% for i in [1,2,3,4,5] %}
+        document.getElementById("population_{{i}}").addEventListener("mouseover", function()
+        {
+          val = document.getElementById("fitness_{{i}}").value;//.getAttribute("value");
+          step = document.getElementById("fitness_{{i}}").getAttribute("step");
+          console.log(val);
+          console.log(step);
+          //while(true){
+            //wait();
+            val = parseFloat(val) + parseFloat(step);
+            document.getElementById("fitness_{{i}}").value = val;
+        //}
+        });
+        {% endfor %}
+    </script>
+  </body>
+</html>
