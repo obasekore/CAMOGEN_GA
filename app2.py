@@ -50,6 +50,11 @@ def index():
     return render_template('index.html')
 
 
+@app.route('/home', methods=['GET'])
+def home():
+    return render_template('home.html')
+
+
 # @app.route('/evolve', methods=['POST'])
 @app.route('/evolve', methods=['GET'])
 def evolve():
