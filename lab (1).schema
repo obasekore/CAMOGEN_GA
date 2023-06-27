@@ -1,0 +1,131 @@
+{
+  "BigQuery Schema":
+    [
+        {"type":"STRING","name":"guid"},
+        {"type":"BOOLEAN","name":"isActive"},
+        {"type":"STRING","name":"firstname"},
+        {"type":"STRING","name":"surname"},
+        {"type":"STRING","name":"company"},
+        {"type":"STRING","name":"email"},
+        {"type":"STRING","name":"phone"},
+        {"type":"STRING","name":"address"},
+        {"type":"STRING","name":"about"},
+        {"type":"TIMESTAMP","name":"registered"},
+        {"type":"FLOAT","name":"latitude"},
+        {"type":"FLOAT","name":"longitude"}
+    ]
+}
+
+
+request_document.json
+{
+  "document": {
+    "content": "Old Norse texts portray Odin as one-eyed and long-bearded, frequently wielding a spear named Gungnir and wearing a cloak and a broad hat.",
+    "type": "PLAIN_TEXT"
+  }
+}
+curl -s -X POST -H "Content-Type: application/json" --data-binary @request_document.json "https://language.googleapis.com/v1/documents:analyzeEntities?key=${API_KEY}" >task4-cnl-399.result
+
+
+request.json
+{
+
+  "config": {
+
+      "encoding":"FLAC",
+
+      "languageCode": "en-US"
+
+  },
+
+  "audio": {
+
+      "uri":"gs://cloud-training/gsp323/task3.flac"
+
+  }
+
+}
+curl -s -X POST -H "Content-Type: application/json" --data-binary @request.json "https://speech.googleapis.com/v1/speech:recognize?key=${API_KEY}">task3-gcs-309.result
+
+
+Task 1
+CREATE OR REPLACE TABLE covid_289.oxford_policy_tracker_841
+PARTITION BY date 
+OPTIONS(
+  partition_expiration_days=720
+)
+AS
+SELECT * FROM `bigquery-public-data.covid19_govt_response.oxford_policy_tracker`
+WHERE alpha_3_code<>'BRA' and alpha_3_code<>'CAN' and alpha_3_code<>'GBR' AND alpha_3_code<>'USA';
+
+TASK 2
+[
+{"name":"population","type":"INTEGER"},
+{"name":"country_area","type":"FLOAT"},
+{"name":"mobility","type":"RECORD","fields": [{"name":"avg_retail","type":"FLOAT"},
+{"name":"avg_grocery","type":"FLOAT"},
+{"name":"avg_parks","type":"FLOAT"},
+{"name":"avg_transit","type":"FLOAT"},
+{"name":"avg_workplace","type":"FLOAT"},
+{"name":"avg_residential","type":"FLOAT"}]}
+
+]
+
+TASK 3
+
+UPDATE
+    `qwiklabs-gcp-02-694f492097d0.covid_289.oxford_policy_tracker_841` t0
+SET
+    t0.population = t2.pop_data_2019
+FROM
+    (SELECT DISTINCT country_territory_code, pop_data_2019 FROM `bigquery-public-data.covid19_ecdc.covid_19_geographic_distribution_worldwide`) AS t2
+WHERE t0.alpha_3_code = t2.country_territory_code;
+
+TASK 4 
+ UPDATE
+    `qwiklabs-gcp-02-694f492097d0.covid_289.oxford_policy_tracker_841` t0
+SET
+    t0.country_area = t2.country_area
+FROM
+    (SELECT DISTINCT country_area, country_name FROM `bigquery-public-data.census_bureau_international.country_names_area`) AS t2
+WHERE t0.country_name = t2.country_name;
+
+TASK 5
+
+
+ 
+ SELECT country_region, date,
+      AVG(retail_and_recreation_percent_change_from_baseline) as avg_retail,
+      AVG(grocery_and_pharmacy_percent_change_from_baseline)  as avg_grocery,
+      AVG(parks_percent_change_from_baseline) as avg_parks,
+      AVG(transit_stations_percent_change_from_baseline) as avg_transit,
+      AVG( workplaces_percent_change_from_baseline ) as avg_workplace,
+      AVG( residential_percent_change_from_baseline)  as avg_residential
+      FROM `bigquery-public-data.covid19_google_mobility.mobility_report`
+      GROUP BY country_region, date
+
+
+
+ 
+ UPDATE
+    `qwiklabs-gcp-02-694f492097d0.covid_289.oxford_policy_tracker_841` t0
+SET
+    t0.mobility.avg_retail = t2.avg_retail,
+    t0.mobility.avg_grocery = t2.avg_grocery,
+    t0.mobility.avg_parks = t2.avg_parks,
+    t0.mobility.avg_transit = t2.avg_transit,
+    t0.mobility.avg_workplace = t2.avg_workplace,
+    t0.mobility.avg_residential = t2.avg_residential,
+FROM
+    (SELECT country_region, date,
+      AVG(retail_and_recreation_percent_change_from_baseline) as avg_retail,
+      AVG(grocery_and_pharmacy_percent_change_from_baseline)  as avg_grocery,
+      AVG(parks_percent_change_from_baseline) as avg_parks,
+      AVG(transit_stations_percent_change_from_baseline) as avg_transit,
+      AVG( workplaces_percent_change_from_baseline ) as avg_workplace,
+      AVG( residential_percent_change_from_baseline)  as avg_residential
+      FROM `bigquery-public-data.covid19_google_mobility.mobility_report`
+      GROUP BY country_region, date) AS t2
+WHERE t0.country_name = t2.country_region;
+
+ 

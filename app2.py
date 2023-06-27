@@ -47,7 +47,12 @@ else:
 
 @app.route('/', methods=['GET'])
 def index():
-    return render_template('index.html')
+    population = 10  # best 10
+    genes = 5  # or features or k
+    rgb = 3
+    colour = np.random.randint(0, 255, size=(genes, rgb))
+    # ratio = np.random.randn((population,genes))
+    return render_template('index.html', data={'colour': colour})
 
 
 @app.route('/home', methods=['GET'])
