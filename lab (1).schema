@@ -92,32 +92,18 @@ WHERE t0.country_name = t2.country_name;
 
 TASK 5
 
-
- 
- SELECT country_region, date,
-      AVG(retail_and_recreation_percent_change_from_baseline) as avg_retail,
-      AVG(grocery_and_pharmacy_percent_change_from_baseline)  as avg_grocery,
-      AVG(parks_percent_change_from_baseline) as avg_parks,
-      AVG(transit_stations_percent_change_from_baseline) as avg_transit,
-      AVG( workplaces_percent_change_from_baseline ) as avg_workplace,
-      AVG( residential_percent_change_from_baseline)  as avg_residential
-      FROM `bigquery-public-data.covid19_google_mobility.mobility_report`
-      GROUP BY country_region, date
-
-
-
  
  UPDATE
-    `qwiklabs-gcp-02-694f492097d0.covid_289.oxford_policy_tracker_841` t0
+    `covid_512.oxford_policy_tracker_111` t0
 SET
     t0.mobility.avg_retail = t2.avg_retail,
     t0.mobility.avg_grocery = t2.avg_grocery,
     t0.mobility.avg_parks = t2.avg_parks,
     t0.mobility.avg_transit = t2.avg_transit,
     t0.mobility.avg_workplace = t2.avg_workplace,
-    t0.mobility.avg_residential = t2.avg_residential,
+    t0.mobility.avg_residential = t2.avg_residential
 FROM
-    (SELECT country_region, date,
+    (SELECT country_region,
       AVG(retail_and_recreation_percent_change_from_baseline) as avg_retail,
       AVG(grocery_and_pharmacy_percent_change_from_baseline)  as avg_grocery,
       AVG(parks_percent_change_from_baseline) as avg_parks,
@@ -125,7 +111,17 @@ FROM
       AVG( workplaces_percent_change_from_baseline ) as avg_workplace,
       AVG( residential_percent_change_from_baseline)  as avg_residential
       FROM `bigquery-public-data.covid19_google_mobility.mobility_report`
-      GROUP BY country_region, date) AS t2
+      GROUP BY country_region) AS t2
 WHERE t0.country_name = t2.country_region;
 
  
+
+ TASK 6
+ SELECT DISTINCT country_name
+FROM `covid_512.oxford_policy_tracker_111`
+WHERE population is NULL 
+UNION ALL
+SELECT DISTINCT country_name
+FROM `covid_512.oxford_policy_tracker_111`
+WHERE country_area IS NULL 
+ORDER BY country_name ASC

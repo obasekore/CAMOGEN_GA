@@ -5,7 +5,7 @@ from flask import Flask, jsonify, render_template, request
 # Define the fitness function
 
 
-def evaluate_fitness(solution, sol_idx):
+def evaluate_fitness(ga_instance, solution, sol_idx):
     # Add your fitness evaluation logic here
     fitness_value = ...
     return fitness_value
@@ -13,29 +13,17 @@ def evaluate_fitness(solution, sol_idx):
 # Define the main function to run the Genetic Algorithm
 
 
-def run_genetic_algorithm():
-    # Define the function to calculate fitness
-    def fitness_function(solution, sol_idx): return evaluate_fitness(
-        solution, sol_idx)
+# # Run the GA
+# ga_instance.run()
 
-    # Create an instance of the pyGAD.GA class
-    ga_instance = pygad.GA(num_generations=10,
-                           num_parents_mating=10,
-                           fitness_func=fitness_function)
+# # Retrieve the best solution
+# best_solution = ga_instance.best_solution()
+# best_fitness = ga_instance.best_solution()[1]
 
-    # Run the GA
-    ga_instance.run()
-
-    # Retrieve the best solution
-    best_solution = ga_instance.best_solution()
-    best_fitness = ga_instance.best_solution()[1]
-
-    # Return the results
-    return best_solution, best_fitness
+# # Return the results
+# return best_solution, best_fitness
 
 # Flask backend
-
-
 ENV = 'dev'
 app = Flask(__name__)
 
@@ -44,15 +32,52 @@ if ENV == 'dev':
 else:
     app.debug = False
 
+fitnesses_from_user = []
+
+
+def fitness_function(ga_instance, solution, sol_idx):
+    global fitnesses_from_user
+    print(sol_idx)
+    fitness_per_pop = fitnesses_from_user[sol_idx]
+    return fitness_per_pop
+    # return 0
+
+
+num_generations = 1
+num_parents_mating = 7
+sol_per_pop = 10
+num_genes = 5  # k features
+
+ga_instance = pygad.GA(num_generations=num_generations,
+                       num_parents_mating=num_parents_mating,
+                       fitness_func=fitness_function,
+                       sol_per_pop=sol_per_pop,
+                       num_genes=num_genes)
+
 
 @app.route('/', methods=['GET'])
 def index():
+    global ga_instance
     population = 10  # best 10
-    genes = 5  # or features or k
-    rgb = 3
-    colour = np.random.randint(0, 255, size=(genes, rgb))
+    no_genes = 5  # or features or k
+    color_channel = 3
+
+    proportion = np.random.rand(population, no_genes)
+
+    colour = np.random.randint(0, 255, size=(
+        population, no_genes, color_channel))
+
+    total = np.sum(proportion, axis=1)
+
+    genes = np.array([(per/tot) for per, tot in zip(proportion, total)])
+
+    data = {
+        "percent": genes.tolist(),
+        "genes": colour  # .tolist()
+    }
+    print(data)
     # ratio = np.random.randn((population,genes))
-    return render_template('index.html', data={'colour': colour})
+    return render_template('index.html', data={'population': data})
 
 
 @app.route('/home', methods=['GET'])
@@ -63,16 +88,37 @@ def home():
 # @app.route('/evolve', methods=['POST'])
 @app.route('/evolve', methods=['GET'])
 def evolve():
+    global ga_instance, fitnesses_from_user
+
     formData = request.values
     # fitness = request.form['fitness']  # {}
+    new_fitness = []
     for key in formData:
         value = formData.get(key)
-        if key in "submit":
+        if key == "submit":
             print(key)
+            continue
         print(key, value)
+        new_fitness.append(float(value))  # NB: the fitnesses are not ordered
     # if request.method == 'POST':
     #     fitness = request.form['fitness']
-    return jsonify(formData)
+
+    fitnesses_from_user = new_fitness
+    ga_instance.run()
+
+    population = 10  # len(value)-1
+    no_genes = 5
+
+    # proportion = ga_instance.best_solution()
+    proportion = np.random.rand(population, no_genes)
+    total = np.sum(proportion, axis=1)
+
+    genes = np.array([(per/tot) for per, tot in zip(proportion, total)])
+    data = {
+        "percent": genes.tolist()
+    }
+    # formData
+    return jsonify(data)
 # Route to start the GA
 
 

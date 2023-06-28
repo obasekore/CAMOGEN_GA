@@ -18,37 +18,39 @@
     <!-- Add your HTML elements for user interaction here -->
     <button id="startButton">Start GA</button>
     <div id="resultsContainer">
-      <form action="/evolve" method="GET" enctype="text/plain">
-        {% set color =
-        {10:[100,0,0],20:[0,100,0],30:[0,0,100],15:[100,100,0],25:[100,0,100]}
-        %} {% for i in [1,2,3,4,5] %}
+      <form action="/evolve" method="GET" name="ga_evolve" enctype="text/plain">
+        {%set genes_percent = data.population.percent%} {%set genes_colour =
+        data.population.genes%} {% for i in range(genes_percent|length) %}
         <div id="population_{{i}}">
-          <!--img src="https://picsum.photos/id/{{i}}/200" /--><br />
           <div class="progress">
-            <!--genes-->
-            {% for percent in [10,20,30,15,25] %}
+            {%set gene_percent = genes_percent[i]%} {%set gene_colour =
+            genes_colour[i]%} {% for j in range(gene_percent|length)%} {% set
+            percent = (gene_percent[j]*100) %} {% set colour = (gene_colour[j])
+            %}
             <div
               class="progress-bar progress-bar-striped progress-bar-animated"
               role="progressbar"
-              style="width: {{percent}}%; background-color:rgba({{color[percent][0]}},{{color[percent][1]}},{{color[percent][2]}})"
-              aria-valuenow="{{percent}}"
+              style="width: {{'%0.2f'%(percent)|float}}%; background-color:rgba({{colour[0]}},{{colour[1]}},{{colour[2]}})"
+              aria-valuenow="{{'%0.2f'%(percent)|float}}"
               aria-valuemin="0"
               aria-valuemax="100"
             ></div>
-            {% endfor %}
+            {%endfor%}
+            <br />
+            <input
+              readonly="readonly"
+              type="number"
+              id="fitness_{{i}}"
+              name="fitness[{{i}}]"
+              value="0"
+              max="100"
+              step="0.01"
+            />
           </div>
-          <input
-            readonly="readonly"
-            type="number"
-            id="fitness_{{i}}"
-            name="fitness[{{i}}]"
-            value="0"
-            max="100"
-            step="0.01"
-          />
         </div>
-        {% endfor %}
-        <input type="submit" value="Evolve" name="submit" />
+        {%endfor%}
+
+        <input type="submit" value="Evolve" id="evolve" name="submit" />
       </form>
     </div>
 
@@ -70,7 +72,7 @@
           xhr.send();
         });
 
-        {% for i in [1,2,3,4,5] %}
+        {% for i in range(genes_percent|length) %}
         document.getElementById("population_{{i}}").addEventListener("mouseover", function()
         {
           val = document.getElementById("fitness_{{i}}").value;//.getAttribute("value");
@@ -84,6 +86,36 @@
         //}
         });
         {% endfor %}
+
+        document
+        .getElementById("evolve")
+        .addEventListener("click", function (e) {
+          e.preventDefault()
+          //data = document.ga_evolve
+          var params = '';
+          for( var i=0; i<document.ga_evolve.elements.length; i++ )
+          {
+            var fieldName = document.ga_evolve.elements[i].name;
+            var fieldValue = document.ga_evolve.elements[i].value;
+
+            // use the fields, put them in a array, etc.
+
+            // or, add them to a key-value pair strings,
+            // as in regular POST
+
+            params += fieldName + '=' + fieldValue + '&';
+          }
+          var xhr = new XMLHttpRequest();
+          xhr.open("GET", "/evolve?"+params, true);
+          xhr.onreadystatechange = function () {
+            if (xhr.readyState === 4 && xhr.status === 200) {
+              // Handle the response from the backend, if needed
+              <b>jhjkh${xhr.responseText}</b>
+              //resultContainer.innerHTML = `<img src="https://picsum.photos/id/1/200" />`;
+            }
+          };
+          xhr.send();
+        });
     </script>
     <!-- JavaScript Bundle with Popper -->
     <script
