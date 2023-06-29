@@ -17,37 +17,6 @@
   <body>
     <!-- Add your HTML elements for user interaction here -->
     <button id="startButton">Start GA</button>
-    {% if message %}
-    <p class="message">{{ message | safe }}</p>
-    {% endif %}
-    <div>
-      <form action="/" enctype="multipart/form-data" method="POST">
-        <div class="form-group">
-          <h3>Select image</h3>
-          <input
-            type="file"
-            name="background"
-            placeholder="Select the background image"
-            required
-            accept="*.png"
-          />
-        </div>
-        <div class="form-group">
-          <h3>Number of colour(s) to extract</h3>
-          <input
-            type="number"
-            value="5"
-            min="1"
-            max="10"
-            name="colours"
-            placeholder="No. of colours"
-          />
-        </div>
-
-        <input type="submit" value="Submit" class="btn" />
-      </form>
-    </div>
-
     <div id="resultsContainer">
       <form action="/evolve" method="GET" name="ga_evolve" enctype="text/plain">
         {%set genes_percent = data.population.percent%} {%set genes_colour =

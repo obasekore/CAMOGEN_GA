@@ -1,6 +1,7 @@
 import pygad
 import numpy as np
 from flask import Flask, jsonify, render_template, request
+from PIL import Image
 
 # Define the fitness function
 
@@ -37,7 +38,7 @@ fitnesses_from_user = []
 
 def fitness_function(ga_instance, solution, sol_idx):
     global fitnesses_from_user
-    print(sol_idx)
+    # print(sol_idx)
     fitness_per_pop = fitnesses_from_user[sol_idx]
     return fitness_per_pop
     # return 0
@@ -48,11 +49,7 @@ num_parents_mating = 7
 sol_per_pop = 10
 num_genes = 5  # k features
 
-ga_instance = pygad.GA(num_generations=num_generations,
-                       num_parents_mating=num_parents_mating,
-                       fitness_func=fitness_function,
-                       sol_per_pop=sol_per_pop,
-                       num_genes=num_genes)
+ga_instance = None
 
 
 @app.route('/', methods=['GET'])
@@ -70,7 +67,10 @@ def index():
     total = np.sum(proportion, axis=1)
 
     genes = np.array([(per/tot) for per, tot in zip(proportion, total)])
-
+    ga_instance = pygad.GA(num_generations=num_generations,
+                           num_parents_mating=num_parents_mating,
+                           fitness_func=fitness_function,
+                           initial_population=genes)
     data = {
         "percent": genes.tolist(),
         "genes": colour  # .tolist()
@@ -78,6 +78,41 @@ def index():
     print(data)
     # ratio = np.random.randn((population,genes))
     return render_template('index.html', data={'population': data})
+
+
+@app.route('/', methods=['POST'])
+def startGA():
+    if request.method == 'POST':
+        # f = request.files['background']
+        # background_name = request.form['background']
+        background_name = 'u'
+        colours = request.form['colours']
+        # print(customer, dealer, rating, comments)
+        if colours == '' or background_name == '':
+            return render_template('index.html', message='Please enter required fields')
+
+            # return render_template('success.html')
+        f = request.files['background']
+        f.stream.seek(0)
+        print(f.filename)
+        content = ""
+        for line in f.stream.readlines():
+            # print(bytearray(line))  # .decode("UTF-8"))
+            content += str(line)  # .decode("UTF-8")
+
+        # f.save(secure_filename(f.filename))
+    # initial_population
+    global ga_instance
+    # print(dir(f))
+    # ga_instance = pygad.GA(num_generations=num_generations,
+    #                        num_parents_mating=num_parents_mating,
+    #                        fitness_func=fitness_function,
+    #                        initial_population=sol_per_pop)
+    # UPLOAD IMAGE
+    #
+    img = Image.frombytes(content)
+    return img.data()
+    pass
 
 
 @app.route('/home', methods=['GET'])
@@ -92,14 +127,15 @@ def evolve():
 
     formData = request.values
     # fitness = request.form['fitness']  # {}
-    new_fitness = []
+    new_fitness = np.zeros(len(formData)-1)
     for key in formData:
         value = formData.get(key)
         if key == "submit":
-            print(key)
+            # print(key)
             continue
-        print(key, value)
-        new_fitness.append(float(value))  # NB: the fitnesses are not ordered
+        # print(key, value)
+        idx = int(key.split(']')[0].split('[')[-1])
+        new_fitness[idx] = float(value)  # NB: the fitnesses are not ordered
     # if request.method == 'POST':
     #     fitness = request.form['fitness']
 
@@ -109,8 +145,10 @@ def evolve():
     population = 10  # len(value)-1
     no_genes = 5
 
-    # proportion = ga_instance.best_solution()
-    proportion = np.random.rand(population, no_genes)
+    proportion = ga_instance.population
+    # print(ga_instance.best_solution())
+    # print(ga_instance.population)
+    # proportion = np.random.rand(population, no_genes)
     total = np.sum(proportion, axis=1)
 
     genes = np.array([(per/tot) for per, tot in zip(proportion, total)])
