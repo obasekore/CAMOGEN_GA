@@ -2,6 +2,10 @@ import pygad
 import numpy as np
 from flask import Flask, jsonify, render_template, request
 from PIL import Image
+import base64
+import cv2
+from sklearn.cluster import KMeans
+from sympy.utilities.iterables import multiset_permutations
 
 # Define the fitness function
 
@@ -46,7 +50,7 @@ def fitness_function(ga_instance, solution, sol_idx):
 
 num_generations = 1
 num_parents_mating = 7
-sol_per_pop = 10
+sample_sol_pop = 10
 num_genes = 5  # k features
 
 ga_instance = None
@@ -82,6 +86,8 @@ def index():
 
 @app.route('/', methods=['POST'])
 def startGA():
+    global fitnesses_from_user
+    global ga_instance  # I will suggest you write to file & reload for the sake of multi user
     if request.method == 'POST':
         # f = request.files['background']
         # background_name = request.form['background']
@@ -93,24 +99,58 @@ def startGA():
 
             # return render_template('success.html')
         f = request.files['background']
-        f.stream.seek(0)
-        print(f.filename)
-        content = ""
-        for line in f.stream.readlines():
-            # print(bytearray(line))  # .decode("UTF-8"))
-            content += str(line)  # .decode("UTF-8")
+        tmp_fitness = np.random.randn(np.math.factorial(5))
+        fitnesses_from_user = tmp_fitness/np.sum(tmp_fitness)
+        imgByte = f.read()
+        nparr = np.fromstring(imgByte, np.uint8)
+        jpg_as_text = base64.b64encode(imgByte).decode('utf-8')
 
-        # f.save(secure_filename(f.filename))
-    # initial_population
-    global ga_instance
+        nparr = np.fromstring(imgByte, np.uint8)
+        img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+        img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        img_rgb_feature = img_rgb.reshape(
+            ((img_rgb.shape[0]*img_rgb.shape[1]), img_rgb.shape[2]))
+        clf = KMeans(n_clusters=int(colours))
+        clf.fit(img_rgb_feature)
+
+        hist = centroid_histogram(clf)
+        bar, colours, Color_percent = plot_colors(hist, clf.cluster_centers_)
+        _p = [t['percent'] for t in Color_percent]
+        _c = [t['color'] for t in Color_percent]
+
+        # permutation n! as the population
+        colour = [col for col in multiset_permutations(_c)]
+        # 5!, 5
+        initial_population = [per for per in multiset_permutations(_p)]
+
+        # labels = []
+        # sizes = []
+        # Colors = []
+        # rgbas = []
+        # for color_dict in Color_percent:
+        #     Colors.append(tuple(color_dict['color']))
+        #     rgbas.append(tuple(np.array(color_dict['color'] + [255.0])/255.0))
+        #     labels.append(color_dict['label'])
+        #     sizes.append(color_dict['percent']*100)
+
     # print(dir(f))
-    # ga_instance = pygad.GA(num_generations=num_generations,
-    #                        num_parents_mating=num_parents_mating,
-    #                        fitness_func=fitness_function,
-    #                        initial_population=sol_per_pop)
+    ga_instance = pygad.GA(num_generations=num_generations,
+                           num_parents_mating=num_parents_mating,
+                           fitness_func=fitness_function,
+                           initial_population=initial_population)
+    # initial_population
+
+    # sample first 10 genes of the 5!
+    genes = ga_instance.population[:sample_sol_pop]
+    data = {
+        "percent": genes.tolist(),
+        "genes": colour[:sample_sol_pop],  # .tolist()
+        "img_text": jpg_as_text
+    }
+    return render_template('start_ga.html', data={'population': data})
     # UPLOAD IMAGE
     #
-    img = Image.frombytes(content)
+    # img = Image.frombytes(content)
     return img.data()
     pass
 
@@ -138,20 +178,34 @@ def evolve():
         new_fitness[idx] = float(value)  # NB: the fitnesses are not ordered
     # if request.method == 'POST':
     #     fitness = request.form['fitness']
-
-    fitnesses_from_user = new_fitness
+    no_maniplable = len(fitnesses_from_user) - \
+        len(new_fitness)  # to avoid out of bound error
+    start = 0  # np.random.randint(0, no_maniplable)
+    fitnesses_from_user[start:len(new_fitness)] = new_fitness
     ga_instance.run()
-
-    population = 10  # len(value)-1
-    no_genes = 5
 
     proportion = ga_instance.population
     # print(ga_instance.best_solution())
     # print(ga_instance.population)
     # proportion = np.random.rand(population, no_genes)
+
+# argv = [
+#             str(BASE_DIR)+'/static/scene/background.png', str(rgbas)]  # , '[(0.1,0,0,1);(0,0.2,0,1);(0,0,0.3,1);(0.1,0.2,0,1);(0.5,0,0.5,1)]'
+#         subprocess.run(["blender", "-b", 'static/scene/Background_camoublend_withPython.blend',
+#                        "-x", "1", "-o", "//rendered", "-a", '--enable-autoexec', ] + argv)
+#         img_camo = cv2.imread(str(BASE_DIR)+'/static/scene/rendered0001.png')
+#         retval, buffer = cv2.imencode('.png', img_camo)
+#         img_camo_as_text = base64.b64encode(buffer).decode('utf-8')
+
+#         soldier_camo = cv2.imread(
+#             str(BASE_DIR)+'/static/scene/rendered0002.png')
+#         retval, buffer = cv2.imencode('.png', soldier_camo)
+#         soldier_camo_as_text = base64.b64encode(buffer).decode('utf-8')
+
     total = np.sum(proportion, axis=1)
 
-    genes = np.array([(per/tot) for per, tot in zip(proportion, total)])
+    genes = np.array([(per/tot)
+                     for per, tot in zip(proportion, total)])[:sample_sol_pop]
     data = {
         "percent": genes.tolist()
     }
@@ -170,7 +224,57 @@ def start_genetic_algorithm():
     }
     return jsonify(response)
 
+# ###################### helper
+
+
+def centroid_histogram(clt):
+    # get the no of different clusters and create a histogram
+    # group to cluster according to the no of pixels assigned
+    numLabels = np.arange(0, len(np.unique(clt.labels_)) + 1)
+    (hist, _) = np.histogram(clt.labels_, bins=numLabels)
+    # normalize the histogram,
+    # so that it sums to one
+    hist = hist.astype("float")
+    hist /= hist.sum()
+    return hist
+
+
+def plot_colors(hist, centroids):
+    # initialize the bar chart
+    # representing the relative frequency
+    # of per colors
+    startX = 0
+    bar = np.zeros((50, 300, 3), dtype="uint8")
+    colours = []
+    Color_percent = []
+
+    # loop over the percentage of each cluster
+    # and the color of each cluster
+    for (percent, color) in zip(hist, centroids):
+        # plot the relative percentage of each cluster
+        endX = startX + (percent * 300)
+        cv2.rectangle(bar, (int(startX), 0), (int(endX), 50),
+                      color.astype("uint8").tolist(), -1)
+        startX = endX
+        colours.append(color.astype("uint8").tolist())
+        Color_percent.append({"label": color.astype("uint8").tolist(
+        ), "color": color.astype("uint8").tolist(), "percent": percent})
+
+    return bar, colours, Color_percent
+
 
 # Run the Flask app
 if __name__ == '__main__':
     app.run()
+
+
+# nparr = np.fromstring(imgByte, np.uint8)
+# img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+# cv2.imwrite(str(BASE_DIR)+'/static/scene/background.png', img)
+# print(img.shape)
+# jpg_as_text = base64.b64encode(imgByte).decode('utf-8')
+# img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+# img_rgb_feature = img_rgb.reshape(
+#     ((img_rgb.shape[0]*img_rgb.shape[1]), img_rgb.shape[2]))
+# clf = KMeans(n_clusters=int(k))
+# clf.fit(img_rgb_feature)

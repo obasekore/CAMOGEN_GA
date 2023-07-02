@@ -1,3 +1,4 @@
 pygad
 numpy
 flask
+sympy
