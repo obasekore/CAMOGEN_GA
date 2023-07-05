@@ -44,7 +44,8 @@
           <div id="population_{{i}}" class="col">
             <div class="card h-100">
               <img
-                src="https://picsum.photos/id/{{i}}/200"
+                id="img_gene_{{i}}"
+                src="{{url_for('static',filename='scene/')}}gene_{{i}}.png"
                 class="card-img-top"
               /><br />
               <div class="card-body">
@@ -133,6 +134,7 @@
                 genes = d.percent;
                 for (var i=0;i<genes.length;i++){
                   gene = genes[i];
+                  document.getElementById("img_gene_"+i).src="{{url_for('static',filename='scene/gene_')}}"+i+".png";
                   for(var j=0;j<gene.length;j++){
                     progress = document.getElementById("gene_"+i+"_"+j);
                     progress.setAttribute('aria-valuenow',gene[j]*100);

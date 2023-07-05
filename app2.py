@@ -6,6 +6,7 @@ import base64
 import cv2
 from sklearn.cluster import KMeans
 from sympy.utilities.iterables import multiset_permutations
+import subprocess
 
 # Define the fitness function
 
@@ -38,6 +39,10 @@ else:
     app.debug = False
 
 fitnesses_from_user = []
+# os.path.join(os.path.dirname(os.path.abspath(__file__))
+BASE_DIR = 'static\\scene\\'
+blender_scene = "static\\scene\\RecentSeamlessBackground_camoublend_withPython.blend"
+blender_script = "static\\scene\\blender_bakingScript.py"
 
 
 def fitness_function(ga_instance, solution, sol_idx):
@@ -54,6 +59,7 @@ sample_sol_pop = 10
 num_genes = 5  # k features
 
 ga_instance = None
+k_rgba_colours = None
 
 
 @app.route('/', methods=['GET'])
@@ -79,14 +85,14 @@ def index():
         "percent": genes.tolist(),
         "genes": colour  # .tolist()
     }
-    print(data)
+    # print(data)
     # ratio = np.random.randn((population,genes))
     return render_template('index.html', data={'population': data})
 
 
 @app.route('/', methods=['POST'])
 def startGA():
-    global fitnesses_from_user
+    global fitnesses_from_user, k_rgba_colours, blender_scene, blender_script
     global ga_instance  # I will suggest you write to file & reload for the sake of multi user
     if request.method == 'POST':
         # f = request.files['background']
@@ -121,6 +127,11 @@ def startGA():
         # permutation n! as the population
         colour = [col for col in multiset_permutations(_c)]
         # 5!, 5
+        # print(colour)
+        # convert to rgba
+        k_rgba_colours = [[tuple(np.array(c + [255.0])/255.0)
+                           for c in colour[i]] for i in range(len(colour))]
+
         initial_population = [per for per in multiset_permutations(_p)]
 
         # labels = []
@@ -142,17 +153,23 @@ def startGA():
 
     # sample first 10 genes of the 5!
     genes = ga_instance.population[:sample_sol_pop]
+
+    colours = k_rgba_colours[:sample_sol_pop]
+    for i, gene in enumerate(genes):
+        var = {str(percent): colours[i][j] for j, percent in enumerate(gene)}
+        # var = {str(key): colour
+        #    for key, colour in zip(gene, colours[i])}
+
+        argv = [BASE_DIR+'gene_{}.png'.format(i), str(var)]
+        # subprocess.run(["blender", "-b", blender_scene,
+        #               "--python", blender_script, '--'] + argv)
     data = {
         "percent": genes.tolist(),
         "genes": colour[:sample_sol_pop],  # .tolist()
         "img_text": jpg_as_text
     }
-    return render_template('start_ga.html', data={'population': data})
-    # UPLOAD IMAGE
-    #
-    # img = Image.frombytes(content)
-    return img.data()
-    pass
+    # templates\start_ga_autofitnessUntil_clicked.html
+    return render_template('start_ga_autofitnessUntil_clicked.html', data={'population': data})
 
 
 @app.route('/home', methods=['GET'])
@@ -161,9 +178,9 @@ def home():
 
 
 # @app.route('/evolve', methods=['POST'])
-@app.route('/evolve', methods=['GET'])
-def evolve():
-    global ga_instance, fitnesses_from_user
+@app.route('/evolve_mouseOver', methods=['GET'])
+def evolve_mouseOver_4fitness():
+    global ga_instance, fitnesses_from_user, blender_scene, blender_script, k_rgba_colours
 
     formData = request.values
     # fitness = request.form['fitness']  # {}
@@ -189,11 +206,12 @@ def evolve():
     # print(ga_instance.population)
     # proportion = np.random.rand(population, no_genes)
 
-# argv = [
-#             str(BASE_DIR)+'/static/scene/background.png', str(rgbas)]  # , '[(0.1,0,0,1);(0,0.2,0,1);(0,0,0.3,1);(0.1,0.2,0,1);(0.5,0,0.5,1)]'
-#         subprocess.run(["blender", "-b", 'static/scene/Background_camoublend_withPython.blend',
-#                        "-x", "1", "-o", "//rendered", "-a", '--enable-autoexec', ] + argv)
-#         img_camo = cv2.imread(str(BASE_DIR)+'/static/scene/rendered0001.png')
+    # , '[(0.1,0,0,1);(0,0.2,0,1);(0,0,0.3,1);(0.1,0.2,0,1);(0.5,0,0.5,1)]'
+    # argv = [str(BASE_DIR)+'/static/scene/background.png', str(rgbas)]
+    var = {'0.2': (0.1, 0, 0, 1), '0.4': (0, 0.2, 0, 1), '0.6': (
+        0, 0, 0.3, 1), '0.8': (0.1, 0.2, 0, 1), '1.0': (0.5, 0, 0.5, 1)}
+
+    # img_camo = cv2.imread(str(BASE_DIR)+'/static/scene/rendered0001.png')
 #         retval, buffer = cv2.imencode('.png', img_camo)
 #         img_camo_as_text = base64.b64encode(buffer).decode('utf-8')
 
@@ -206,12 +224,81 @@ def evolve():
 
     genes = np.array([(per/tot)
                      for per, tot in zip(proportion, total)])[:sample_sol_pop]
+    colours = k_rgba_colours[:sample_sol_pop]
+    for i, gene in enumerate(genes):
+        var = {str(percent): colours[i][j] for j, percent in enumerate(gene)}
+
+        argv = [BASE_DIR+'gene_{}.png'.format(i), str(var)]
+        subprocess.run(["blender", "-b", blender_scene,
+                        "--python", blender_script, '--'] + argv)
     data = {
         "percent": genes.tolist()
     }
     # formData
     return jsonify(data)
 # Route to start the GA
+# templates\start_ga_mouseOver_4fitness.html
+# templates\start_ga_autofitnessUntil_clicked.html
+
+
+@app.route('/evolve_clicked', methods=['GET'])
+def evolve_autofitnessUntil_clicked():
+    global ga_instance, fitnesses_from_user, blender_scene, blender_script, k_rgba_colours
+
+    formData = request.values
+    # fitness = request.form['fitness']  # {}
+    new_fitness = np.zeros(len(formData)-1)
+    for key in formData:
+        value = formData.get(key)
+        if key == "submit":
+            # print(key)
+            continue
+        # print(key, value)
+        idx = int(key.split(']')[0].split('[')[-1])
+        new_fitness[idx] = float(value)  # NB: the fitnesses are not ordered
+    # if request.method == 'POST':
+    #     fitness = request.form['fitness']
+    no_maniplable = len(fitnesses_from_user) - \
+        len(new_fitness)  # to avoid out of bound error
+    start = 0  # np.random.randint(0, no_maniplable)
+    fitnesses_from_user[start:len(new_fitness)] = new_fitness
+    ga_instance.run()
+
+    proportion = ga_instance.population
+    # print(ga_instance.best_solution())
+    # print(ga_instance.population)
+    # proportion = np.random.rand(population, no_genes)
+
+    # , '[(0.1,0,0,1);(0,0.2,0,1);(0,0,0.3,1);(0.1,0.2,0,1);(0.5,0,0.5,1)]'
+    # argv = [str(BASE_DIR)+'/static/scene/background.png', str(rgbas)]
+    var = {'0.2': (0.1, 0, 0, 1), '0.4': (0, 0.2, 0, 1), '0.6': (
+        0, 0, 0.3, 1), '0.8': (0.1, 0.2, 0, 1), '1.0': (0.5, 0, 0.5, 1)}
+
+    # img_camo = cv2.imread(str(BASE_DIR)+'/static/scene/rendered0001.png')
+#         retval, buffer = cv2.imencode('.png', img_camo)
+#         img_camo_as_text = base64.b64encode(buffer).decode('utf-8')
+
+#         soldier_camo = cv2.imread(
+#             str(BASE_DIR)+'/static/scene/rendered0002.png')
+#         retval, buffer = cv2.imencode('.png', soldier_camo)
+#         soldier_camo_as_text = base64.b64encode(buffer).decode('utf-8')
+
+    total = np.sum(proportion, axis=1)
+
+    genes = np.array([(per/tot)
+                     for per, tot in zip(proportion, total)])[:sample_sol_pop]
+    colours = k_rgba_colours[:sample_sol_pop]
+    for i, gene in enumerate(genes):
+        var = {str(percent): colours[i][j] for j, percent in enumerate(gene)}
+
+        argv = [BASE_DIR+'gene_{}.png'.format(i), str(var)]
+        subprocess.run(["blender", "-b", blender_scene,
+                        "--python", blender_script, '--'] + argv)
+    data = {
+        "percent": genes.tolist()
+    }
+    # formData
+    return jsonify(data)
 
 
 @app.route('/start_ga', methods=['GET'])
