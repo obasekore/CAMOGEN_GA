@@ -7,6 +7,7 @@ import cv2
 from sklearn.cluster import KMeans
 from sympy.utilities.iterables import multiset_permutations
 import subprocess
+import json
 
 # Define the fitness function
 
@@ -247,7 +248,7 @@ def evolve_autofitnessUntil_clicked():
 
     formData = request.values
     # fitness = request.form['fitness']  # {}
-    new_fitness = np.zeros(len(formData)-1)
+    new_fitness = np.zeros(len(formData))
     for key in formData:
         value = formData.get(key)
         if key == "submit":
@@ -288,12 +289,17 @@ def evolve_autofitnessUntil_clicked():
     genes = np.array([(per/tot)
                      for per, tot in zip(proportion, total)])[:sample_sol_pop]
     colours = k_rgba_colours[:sample_sol_pop]
+    tmp = []
     for i, gene in enumerate(genes):
-        var = {str(percent): colours[i][j] for j, percent in enumerate(gene)}
-
-        argv = [BASE_DIR+'gene_{}.png'.format(i), str(var)]
-        subprocess.run(["blender", "-b", blender_scene,
-                        "--python", blender_script, '--'] + argv)
+        var = [(str(percent), colours[i][j]) for j, percent in enumerate(gene)]
+        tmp.append(var)
+    dataPath = BASE_DIR+'result.json'
+    with open(dataPath, 'w') as fp:
+        json.dump(tmp, fp)
+    argv = [BASE_DIR+'gene_', dataPath]
+    blender_script = BASE_DIR+'blender_bakingScript_faster.py'
+    subprocess.run(["blender", "-b", blender_scene,
+                    "--python", blender_script, '--'] + argv)
     data = {
         "percent": genes.tolist()
     }

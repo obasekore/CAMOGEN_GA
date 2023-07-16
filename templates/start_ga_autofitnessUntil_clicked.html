@@ -1,291 +1,850 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
     <!-- CSS only -->
     <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css"
       rel="stylesheet"
-      integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM"
+      integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65"
       crossorigin="anonymous"
     />
+    <style>
+      /*data:image/png;base64,*/
+      #imageStrip {
+        height: 100vh;
+        overflow-y: auto;
+      }
+      #background {
+        padding-left: 0;
 
+        background-image: url(static/environment2.png);
+        background-repeat: repeat;
+        height: 100%;
+        min-height: 100vh;
+      }
+      #myCanvas {
+        left: 0;
+        border: 1px solid rgb(34, 200, 109);
+        height: 100%;
+        min-height: 100vh;
+      }
+    </style>
     <meta charset="utf-8" />
     <title>Genetic Algorithm Interactive Design</title>
     <style>
       /* Add your custom styles here */
     </style>
   </head>
-  <body>
+  <body class="d-flex align-items-center py-4 bg-body-tertiary">
     <!-- Add your HTML elements for user interaction here -->
-    {%set genes_percent = data.population.percent%} {%set genes_colour =
-    data.population.genes%}
-    <div class="container">
-      <div class="container text-center">
+    <main>
+      <div class="container">
         <div class="row">
-          <div class="col">1 of 3</div>
-          <div class="col-6">
-            <canvas
-              usemap="#desk"
-              id="myCanvas"
-              width="500"
-              height="500"
-              style="border: 1px solid grey"
-            ></canvas>
+          <div
+            class="alert alert-success alert-dismissible fade show text-center"
+          >
+            <button
+              title="evolve-button"
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="alert"
+              onclick=""
+            ></button>
+            <strong>Note:</strong> Ensure the patterns on the background image
+            are <b>clicked</b> in the order of obviousness.
           </div>
-          <div class="col">3 of 3</div>
         </div>
-        <div class="row">
-          {% for i in range(genes_percent|length) %}
-          <div class="col">
-            <img
-              id="img_gene_{{i}}"
-              src="{{url_for('static',filename='scene/')}}gene_{{i}}.png"
-              class="card-img-top"
-            />
-            <div class="card-footer">
-              <small class="text-body-secondary">Fittness Score:</small>
-              <input
-                readonly="readonly"
-                type="number"
-                id="auto_fitness_{{i}}"
-                name="fitness[{{i}}]"
-                value="0"
-                max="100"
-                step="0.01"
-              />
+        <div class="container text-center">
+          <div class="row">
+            <div class="d-grid gap-3 py-1">
+              <button id="evolve" class="btn btn-success btn-block">
+                Click To Evolve Generation (<span
+                  id="generation"
+                  class="badge bg-danger"
+                  >4</span
+                >)
+              </button>
             </div>
           </div>
-          {% endfor%}
-        </div>
-      </div>
-      {% if message %}
-      <p class="message">{{ message | safe }}</p>
-      {% endif %}
-      <div class="card" style="width: 18rem">
-        <img
-          src="data:image/png;base64, {{data.population.img_text}}"
-          class="card-img-top"
-          alt="..."
-        />
-        <div class="card-body">
-          <p class="card-text">Background Environment</p>
-        </div>
-      </div>
+          <div class="row">
+            <div class="col-lg-8">Background</div>
+            <div class="col-lg-4">Sample Population</div>
+          </div>
+          <div class="row">
+            <div id="background" class="col-lg-8">
+              <canvas width="900" id="myCanvas"></canvas>
+            </div>
+            <div class="col-lg-4">
+              <form
+                action="/evolve"
+                method="GET"
+                name="ga_evolve"
+                enctype="text/plain"
+              >
+                <div class="row" id="imageStrip">
+                  <div class="col section" id="section0">
+                    <img
+                      alt="img_gene_0"
+                      class="img-thumbnail"
+                      src="static/scene/gene_0.png"
+                      id="img_gene_0"
+                      width="200"
+                    />
+                    <br />
+                    <label for="auto_fitness_0">Fitness Score:</label> <br />
+                    <input
+                      readonly="readonly"
+                      type="number"
+                      id="auto_fitness_0"
+                      name="fitness[0]"
+                      value="0"
+                      max="100"
+                      step="0.01"
+                      onClick="clearTimer(0)"
+                    />
+                    <a
+                      href="static/scene/gene_0.png"
+                      class="btn btn-primary"
+                      target="_blank"
+                      >Download Hi-Res</a
+                    >
+                  </div>
 
-      <div id="resultsContainer" class="row row-cols-1 row-cols-md-3 g-4">
-        <form
-          action="/evolve"
-          method="GET"
-          name="ga_evolve"
-          enctype="text/plain"
-        >
-          {% for i in range(genes_percent|length) %}
-          <div id="population_{{i}}" class="col">
-            <div class="card h-100">
-              <img
-                id="img_gene_{{i}}"
-                src="{{url_for('static',filename='scene/')}}gene_{{i}}.png"
-                class="card-img-top"
-              /><br />
-              <div class="card-body">
-                <div class="progress">
-                  {%set gene_percent = genes_percent[i]%} {%set gene_colour =
-                  genes_colour[i]%} {% for j in range(gene_percent|length)%} {%
-                  set percent = (gene_percent[j]*100) %} {% set colour =
-                  (gene_colour[j]) %}
-                  <div
-                    class="progress-bar progress-bar-striped progress-bar-animated"
-                    role="progressbar"
-                    style="width: {{'%0.2f'%(percent)|float}}%; background-color:rgba({{colour[0]}},{{colour[1]}},{{colour[2]}})"
-                    aria-valuenow="{{'%0.2f'%(percent)|float}}"
-                    aria-valuemin="0"
-                    aria-valuemax="100"
-                    id="gene_{{i}}_{{j}}"
-                  ></div>
-                  {%endfor%}
+                  <div class="col section" id="section1">
+                    <img
+                      alt="img_gene_1"
+                      class="img-thumbnail"
+                      src="static/scene/gene_1.png"
+                      id="img_gene_1"
+                      width="200"
+                    /><br />
+                    <label for="auto_fitness_1">Fitness Score:</label> <br />
+                    <input
+                      readonly="readonly"
+                      type="number"
+                      id="auto_fitness_1"
+                      name="fitness[1]"
+                      value="0"
+                      max="100"
+                      step="0.01"
+                      onClick="clearTimer(1)"
+                    />
+                    <a
+                      href="static/scene/gene_1.png"
+                      class="btn btn-primary"
+                      target="_blank"
+                      >Download Hi-Res</a
+                    >
+                  </div>
+                  <div class="col section" id="section2">
+                    <img
+                      alt="img_gene_2"
+                      class="img-thumbnail"
+                      src="static/scene/gene_2.png"
+                      id="img_gene_2"
+                      width="200"
+                    /><br />
+                    <label for="auto_fitness_2">Fitness Score:</label> <br />
+                    <input
+                      readonly="readonly"
+                      type="number"
+                      id="auto_fitness_2"
+                      name="fitness[2]"
+                      value="0"
+                      max="100"
+                      step="0.01"
+                      onClick="clearTimer(2)"
+                    />
+                    <a
+                      href="static/scene/gene_2.png"
+                      class="btn btn-primary"
+                      target="_blank"
+                      >Download Hi-Res</a
+                    >
+                  </div>
+                  <div class="col section" id="section3">
+                    <img
+                      alt="img_gene_3"
+                      class="img-thumbnail"
+                      src="static/scene/gene_3.png"
+                      id="img_gene_3"
+                      width="200"
+                    /><br />
+                    <label for="auto_fitness_3">Fitness Score:</label> <br />
+                    <input
+                      readonly="readonly"
+                      type="number"
+                      id="auto_fitness_3"
+                      name="fitness[3]"
+                      value="0"
+                      max="100"
+                      step="0.01"
+                      onClick="clearTimer(3)"
+                    />
+                    <a
+                      href="static/scene/gene_3.png"
+                      class="btn btn-primary"
+                      target="_blank"
+                      >Download Hi-Res</a
+                    >
+                  </div>
+                  <div class="col section" id="section4">
+                    <img
+                      alt="img_gene_4"
+                      class="img-thumbnail"
+                      src="static/scene/gene_4.png"
+                      id="img_gene_4"
+                      width="200"
+                    /><br />
+                    <label for="auto_fitness_4">Fitness Score:</label> <br />
+                    <input
+                      readonly="readonly"
+                      type="number"
+                      id="auto_fitness_4"
+                      name="fitness[4]"
+                      value="0"
+                      max="100"
+                      step="0.01"
+                      onClick="clearTimer(4)"
+                    />
+                    <a
+                      href="static/scene/gene_4.png"
+                      class="btn btn-primary"
+                      target="_blank"
+                      >Download Hi-Res</a
+                    >
+                  </div>
+                  <div class="col section" id="section5">
+                    <img
+                      alt="img_gene_5"
+                      class="img-thumbnail"
+                      src="static/scene/gene_5.png"
+                      id="img_gene_5"
+                      width="200"
+                    /><br />
+                    <label for="auto_fitness_5">Fitness Score:</label> <br />
+                    <input
+                      readonly="readonly"
+                      type="number"
+                      id="auto_fitness_5"
+                      name="fitness[5]"
+                      value="0"
+                      max="100"
+                      step="0.01"
+                      onClick="clearTimer(5)"
+                    />
+                    <a
+                      href="static/scene/gene_5.png"
+                      class="btn btn-primary"
+                      target="_blank"
+                      >Download Hi-Res</a
+                    >
+                  </div>
+                  <div class="col section" id="section6">
+                    <img
+                      alt="img_gene_6"
+                      class="img-thumbnail"
+                      src="static/scene/gene_6.png"
+                      id="img_gene_6"
+                      width="200"
+                    /><br />
+                    <label for="auto_fitness_6">Fitness Score:</label> <br />
+                    <input
+                      readonly="readonly"
+                      type="number"
+                      id="auto_fitness_6"
+                      name="fitness[6]"
+                      value="0"
+                      max="100"
+                      step="0.01"
+                      onClick="clearTimer(6)"
+                    />
+                    <a
+                      href="static/scene/gene_6.png"
+                      class="btn btn-primary"
+                      target="_blank"
+                      >Download Hi-Res</a
+                    >
+                  </div>
+                  <div class="col section" id="section7">
+                    <img
+                      alt="img_gene_7"
+                      class="img-thumbnail"
+                      src="static/scene/gene_7.png"
+                      id="img_gene_7"
+                      width="200"
+                    /><br />
+                    <label for="auto_fitness_7">Fitness Score:</label> <br />
+                    <input
+                      readonly="readonly"
+                      type="number"
+                      id="auto_fitness_7"
+                      name="fitness[7]"
+                      value="0"
+                      max="100"
+                      step="0.01"
+                      onClick="clearTimer(7)"
+                    />
+                    <a
+                      href="static/scene/gene_7.png"
+                      class="btn btn-primary"
+                      target="_blank"
+                      >Download Hi-Res</a
+                    >
+                  </div>
+                  <div class="col section" id="section8">
+                    <img
+                      alt="img_gene_8"
+                      class="img-thumbnail"
+                      src="static/scene/gene_8.png"
+                      id="img_gene_8"
+                      width="200"
+                    /><br />
+                    <label for="auto_fitness_8">Fitness Score:</label> <br />
+                    <input
+                      readonly="readonly"
+                      type="number"
+                      id="auto_fitness_8"
+                      name="fitness[8]"
+                      value="0"
+                      max="100"
+                      step="0.01"
+                      onClick="clearTimer(8)"
+                    />
+                    <a
+                      href="static/scene/gene_8.png"
+                      class="btn btn-primary"
+                      target="_blank"
+                      >Download Hi-Res</a
+                    >
+                  </div>
+                  <div class="col section" id="section9">
+                    <img
+                      alt="img_gene_9"
+                      class="img-thumbnail"
+                      src="static/scene/gene_9.png"
+                      id="img_gene_9"
+                      width="200"
+                    /><br />
+                    <label for="auto_fitness_9">Fitness Score:</label> <br />
+                    <input
+                      readonly="readonly"
+                      type="number"
+                      id="auto_fitness_9"
+                      name="fitness[9]"
+                      value="0"
+                      max="100"
+                      step="0.01"
+                      onClick="clearTimer(9)"
+                    />
+                    <a
+                      href="static/scene/gene_9.png"
+                      class="btn btn-primary"
+                      target="_blank"
+                      >Download Hi-Res</a
+                    >
+                  </div>
                 </div>
-              </div>
-              <br />
-              <div class="card-footer">
-                <small class="text-body-secondary">Fittness Score:</small>
+              </form>
+            </div>
+            <!-- <div class="row" id="imageStrip">
+              <div class="col">
+                <img
+                  class="img-thumbnail"
+                  src="static/scene/gene_0.png"
+                  id="img_gene_0"
+                />
+                <small class="text-body-secondary">Fitness Score:</small>
                 <input
                   readonly="readonly"
                   type="number"
-                  id="fitness_{{i}}"
-                  name="fitness[{{i}}]"
+                  id="auto_fitness_0"
+                  name="fitness[0]"
                   value="0"
                   max="100"
                   step="0.01"
+                  onClick="clearTimer(0)"
                 />
               </div>
-            </div>
+
+              <div class="col">
+                <img
+                  class="img-thumbnail"
+                  src="static/scene/gene_1.png"
+                  id="img_gene_1"
+                />
+                <small class="text-body-secondary">Fitness Score:</small>
+                <input
+                  readonly="readonly"
+                  type="number"
+                  id="auto_fitness_1"
+                  name="fitness[1]"
+                  value="0"
+                  max="100"
+                  step="0.01"
+                  onClick="clearTimer(1)"
+                />
+              </div>
+              <div class="col">
+                <img
+                  class="img-thumbnail"
+                  src="static/scene/gene_2.png"
+                  id="img_gene_2"
+                />
+                <small class="text-body-secondary">Fitness Score:</small>
+                <input
+                  readonly="readonly"
+                  type="number"
+                  id="auto_fitness_2"
+                  name="fitness[2]"
+                  value="0"
+                  max="100"
+                  step="0.01"
+                  onClick="clearTimer(2)"
+                />
+              </div>
+              <div class="col">
+                <img
+                  class="img-thumbnail"
+                  src="static/scene/gene_3.png"
+                  id="img_gene_3"
+                />
+                <small class="text-body-secondary">Fitness Score:</small>
+                <input
+                  readonly="readonly"
+                  type="number"
+                  id="auto_fitness_3"
+                  name="fitness[3]"
+                  value="0"
+                  max="100"
+                  step="0.01"
+                  onClick="clearTimer(3)"
+                />
+              </div>
+              <div class="col">
+                <img
+                  class="img-thumbnail"
+                  src="static/scene/gene_4.png"
+                  id="img_gene_4"
+                />
+                <small class="text-body-secondary">Fitness Score:</small>
+                <input
+                  readonly="readonly"
+                  type="number"
+                  id="auto_fitness_4"
+                  name="fitness[4]"
+                  value="0"
+                  max="100"
+                  step="0.01"
+                  onClick="clearTimer(4)"
+                />
+              </div>
+              <div class="col">
+                <img
+                  class="img-thumbnail"
+                  src="static/scene/gene_5.png"
+                  id="img_gene_5"
+                />
+                <small class="text-body-secondary">Fitness Score:</small>
+                <input
+                  readonly="readonly"
+                  type="number"
+                  id="auto_fitness_5"
+                  name="fitness[5]"
+                  value="0"
+                  max="100"
+                  step="0.01"
+                  onClick="clearTimer(5)"
+                />
+              </div>
+              <div class="col">
+                <img
+                  class="img-thumbnail"
+                  src="static/scene/gene_6.png"
+                  id="img_gene_6"
+                />
+                <small class="text-body-secondary">Fitness Score:</small>
+                <input
+                  readonly="readonly"
+                  type="number"
+                  id="auto_fitness_6"
+                  name="fitness[6]"
+                  value="0"
+                  max="100"
+                  step="0.01"
+                  onClick="clearTimer(6)"
+                />
+              </div>
+              <div class="col">
+                <img
+                  class="img-thumbnail"
+                  src="static/scene/gene_7.png"
+                  id="img_gene_7"
+                />
+                <small class="text-body-secondary">Fitness Score:</small>
+                <input
+                  readonly="readonly"
+                  type="number"
+                  id="auto_fitness_7"
+                  name="fitness[7]"
+                  value="0"
+                  max="100"
+                  step="0.01"
+                  onClick="clearTimer(7)"
+                />
+              </div>
+              <div class="col">
+                <img
+                  class="img-thumbnail"
+                  src="static/scene/gene_8.png"
+                  id="img_gene_8"
+                />
+                <small class="text-body-secondary">Fitness Score:</small>
+                <input
+                  readonly="readonly"
+                  type="number"
+                  id="auto_fitness_8"
+                  name="fitness[8]"
+                  value="0"
+                  max="100"
+                  step="0.01"
+                  onClick="clearTimer(8)"
+                />
+              </div>
+              <div class="col">
+                <img
+                  class="img-thumbnail"
+                  src="static/scene/gene_9.png"
+                  id="img_gene_9"
+                />
+                <small class="text-body-secondary">Fitness Score:</small>
+                <input
+                  readonly="readonly"
+                  type="number"
+                  id="auto_fitness_9"
+                  name="fitness[9]"
+                  value="0"
+                  max="100"
+                  step="0.01"
+                  onClick="clearTimer(9)"
+                />
+              </div>
+            </div> -->
           </div>
-          {%endfor%}
-
-          <input type="submit" value="Evolve" id="evolve" name="submit" />
-        </form>
+        </div>
       </div>
+    </main>
 
-      <script>
+    <script>
+      // Get the canvas element
+      const canvas = document.getElementById("myCanvas");
+      const container = document.getElementById("imageStrip");
+      const sections = document.getElementsByClassName("section");
+      // Get the canvas context
+      const ctx = canvas.getContext("2d");
+      let interval2 = [];
+      // Create an array to store the positions of the drawn images
+      const drawnImagePositions = [];
+      // Load all the images
+      const images = [];
+      let loadedImages = 0;
+      const desiredWidth = 50;
+      const desiredHeight = 50;
 
-        function counters2(i=0)
-        {
-          val = document.getElementById("auto_fitness_"+i).value;
-          //.getAttribute("value");
-          step = document.getElementById("auto_fitness_"+i).getAttribute("step");
+      const imageSources = [
+        "path/to/image1.jpg",
+        "path/to/image2.jpg",
+        "path/to/image3.jpg",
+        "path/to/image1.jpg",
+        "path/to/image2.jpg",
+        "path/to/image3.jpg",
+        "path/to/image1.jpg",
+        "path/to/image2.jpg",
+        "path/to/image3.jpg",
+        "path/to/image3.jpg",
+      ];
 
-            val = parseFloat(val) + parseFloat(step);
-            document.getElementById("auto_fitness_"+i).value = val;
+      // Get the canvas container element
+      const canvasContainer = document.getElementById("background");
+
+      // Function to resize the canvas to fit the container width
+      function resizeCanvas() {
+        canvas.width = canvasContainer.clientWidth;
+        canvas.height = canvasContainer.clientHeight;
+
+        // Perform additional canvas drawing operations here if needed
+      }
+
+      // Initial canvas resizing
+      resizeCanvas();
+
+      // Attach event listener for window resize
+      window.addEventListener("resize", resizeCanvas);
+
+      function counters2(i = 0) {
+        val = document.getElementById("auto_fitness_" + i).value;
+        //.getAttribute("value");
+        step = document
+          .getElementById("auto_fitness_" + i)
+          .getAttribute("step");
+
+        val = parseFloat(val) + parseFloat(step);
+        document.getElementById("auto_fitness_" + i).value = val;
         //}
+      }
+
+      function randomIntFromInterval(min, max) {
+        // min and max included
+        return Math.floor(Math.random() * (max - min + 1) + min);
+      }
+      // Function to start drawing the images
+      function startDrawing() {
+        // Clear the canvas
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Draw the images
+        for (let i = 0; i < images.length; i++) {
+          const image = images[i];
+          // const position = getRandomPosition(image.width, image.height);
+          const position = getRandomPosition(desiredWidth, desiredHeight);
+
+          ctx.drawImage(
+            image,
+            position.x,
+            position.y,
+            desiredWidth,
+            desiredHeight
+          );
+          drawnImagePositions.push({
+            position: position,
+            image: image,
+          });
         }
+      }
 
-        function randomIntFromInterval(min, max) { // min and max included
-          return Math.floor(Math.random() * (max - min + 1) + min)
-        }
+      // Function to get a random position for an image
+      function getRandomPosition(imageWidth, imageHeight) {
+        const canvasWidth = canvas.width;
+        const canvasHeight = canvas.height;
 
-        // create array of locations
-        let pop_loc = [];
-        window.onload = function() {
-          const canvas = document.getElementById("myCanvas");
-          const ctx = canvas.getContext("2d");
-          //const img = document.getElementById("scream");
-          //const pop = document.getElementById("pop");
-          // Create an image element
-          const BackgroundImage = new Image();
-          // Set the image source
-          BackgroundImage.src = "data:image/png;base64, {{data.population.img_text}}";
-          // When the image is loaded, draw it onto the canvas
-          BackgroundImage.onload = function() {
-            // Draw the image onto the canvas at coordinates (0, 0)
-            ctx.drawImage(BackgroundImage, 0, 0);
+        let position;
+        let isOverlap;
 
-              const img = [];
-            {% for i in range(genes_percent|length) %}
-              //get each population img
-              img[{{i}}] = document.getElementById("img_gene_{{i}}");
-
-              // generate random x,y location
-              x = randomIntFromInterval(0, 500); //#200;
-              y = randomIntFromInterval(0, 500);//250;
-              console.log(x,y);
-              ctx.drawImage(img[{{i}}], x,y);
-            {% endfor %}
+        do {
+          // Generate a random position
+          position = {
+            x: Math.floor(Math.random() * (canvasWidth - imageWidth)),
+            y: Math.floor(Math.random() * (canvasHeight - imageHeight)),
           };
 
+          // Check for overlap with existing images
+          isOverlap = false;
+          for (let i = 0; i < drawnImagePositions.length; i++) {
+            const existingPosition = drawnImagePositions[i].position;
+            if (
+              checkOverlap(
+                position,
+                imageWidth,
+                imageHeight,
+                existingPosition,
+                images[i].width,
+                images[i].height
+              )
+            ) {
+              isOverlap = true;
+              break;
+            }
+          }
+        } while (isOverlap);
 
-          const interval2 = [];
+        return position;
+      }
 
-          {% for i in range(genes_percent|length) %}
+      // Function to check if two rectangles overlap
+      function checkOverlap(
+        rect1Pos,
+        rect1Width,
+        rect1Height,
+        rect2Pos,
+        rect2Width,
+        rect2Height
+      ) {
+        return (
+          rect1Pos.x < rect2Pos.x + rect2Width &&
+          rect1Pos.x + rect1Width > rect2Pos.x &&
+          rect1Pos.y < rect2Pos.y + rect2Height &&
+          rect1Pos.y + rect1Height > rect2Pos.y
+        );
+      }
 
-            interval2[{{i}}] = setInterval(counters2, 10,{{i}});
-            document.getElementById("auto_fitness_{{i}}").addEventListener('click', () => {
-              clearInterval(interval2[{{i}}]);
+      // Add click event listener to the canvas
+      canvas.addEventListener("click", handleCanvasClick);
 
+      // Event handler for canvas click
+      function handleCanvasClick(event) {
+        const rect = canvas.getBoundingClientRect();
+        const mouseX = event.clientX - rect.left;
+        const mouseY = event.clientY - rect.top;
+
+        // Iterate over drawn images and perform hit testing
+        for (let i = 0; i < drawnImagePositions.length; i++) {
+          const position = drawnImagePositions[i].position;
+          const image = drawnImagePositions[i].image;
+          const imageWidth = image.width;
+          const imageHeight = image.height;
+
+          if (
+            mouseX >= position.x &&
+            mouseX <= position.x + imageWidth &&
+            mouseY >= position.y &&
+            mouseY <= position.y + imageHeight
+          ) {
+            // Clicked on the image
+            clearInterval(interval2[i]);
+            container.scrollTop = sections[i].offsetTop;
+            console.log("Clicked on image", i + 1);
+            break;
+          }
+        }
+      }
+
+      function clearTimer(i) {
+        clearInterval(interval2[i]);
+      }
+
+      window.onload = function () {
+        let w = window.innerWidth;
+        let h = window.innerHeight;
+        // background = document.getElementById("background");
+        // canvas.height = 1500;
+        //background.height; //1800; //h / 2; //window.screen.height / 2;
+        // canvas.width = 900;
+        //background.width; //w - 200; //window.screen.width;
+
+        imgStrip = document.getElementById("imageStrip");
+
+        const img = [];
+        content = "";
+        for (var i = 0; i < 10; i++) {
+          imgSrc = document.getElementById("img_gene_" + i).src;
+          // template = `<div class="col">
+          //   <img class="img-thumbnail" src="static/scene/gene_${i}.png" id="img_gene_${i}"/>
+          //   <small class="text-body-secondary">Fitness Score:</small>
+          //   <input
+          //     readonly="readonly"
+          //     type="number"
+          //     id="auto_fitness_${i}"
+          //     name="fitness[${i}]"
+          //     value="0"
+          //     max="100"
+          //     step="0.01"
+          //     onClick="clearTimer(${i})"
+          //   />
+          //   </div>`;
+          // // content += template;
+          // imgStrip.innerHTML += template;
+          const image = new Image();
+          image.src = imgSrc; //imageSources[i];
+          image.addEventListener("load", () => {
+            loadedImages++;
+            // image.width = desiredWidth;
+            // image.height = desiredHeight;
+            if (loadedImages === imageSources.length) {
+              // All images are loaded, start drawing
+              startDrawing();
+            }
           });
+          images.push(image);
+          interval2[i] = setInterval(counters2, 10, i);
+          // document
+          //   .getElementById("auto_fitness_" + i)
+          //   .addEventListener("click", () => {
+          //     clearInterval(interval2[i]);
+          //   });
+        }
 
-          {% endfor %}
-        };
+        // for (var i = 0; i < 10; i++) {
+        //   img[i] = document.getElementById("img_gene_" + i);
 
-              canvas = document.getElementById("myCanvas");
-                  canvas.addEventListener('click', handleCanvasClick);
+        //   // generate random x,y location
+        //   x = randomIntFromInterval(0, canvas.width - desiredWidth); //#200;
+        //   y = randomIntFromInterval(0, canvas.height - desiredHeight); //250;
+        //   console.log(x, y);
+        //   ctx.drawImage(img[i], x, y, desiredWidth, desiredHeight);
+        //   // console.log(img[i]);
+        // }
 
-                  // Event handler for canvas click
-                  function handleCanvasClick(event) {
-                    // Get the coordinates of the click relative to the canvas
-                    const rect = canvas.getBoundingClientRect();
-                    const x = event.clientX - rect.left;
-                    const y = event.clientY - rect.top;
+        // console.log(img[2]);
+        // imgStrip.innerHTML = content;
+      };
 
-                    // Check if the click is within the desired area
-                    if (x > 200 && x < 220 && y > 250 && y < 270) {
-                      // Perform actions for the specified area
-                      console.log('Clicked on the designated area!');
-                    }
-                  }
+      let evolveBtn = document.getElementById("evolve");
 
+      evolveBtn.addEventListener("click", function (e) {
+        evolveBtn.disabled = true;
+        e.preventDefault();
+        //data = document.ga_evolve
+        var params = "";
+        for (var i = 0; i < document.ga_evolve.elements.length; i++) {
+          var fieldName = document.ga_evolve.elements[i].name;
+          var fieldValue = document.ga_evolve.elements[i].value;
 
-              // AJAX call to the backend to initiate the GA
-              let resultContainer = document.getElementById("resultsContainer");
+          params += fieldName + "=" + fieldValue + "&";
+        }
+        var xhr = new XMLHttpRequest();
+        xhr.open("GET", "/evolve_clicked?" + params, true);
+        xhr.onreadystatechange = function () {
+          if (xhr.readyState === 4 && xhr.status === 200) {
+            // Handle the response from the backend, if needed
+            d = JSON.parse(xhr.responseText);
+            genes = d.percent;
+            ctx.clearRect(0, 0, ctx.width, ctx.height);
+            for (var i = 0; i < genes.length; i++) {
+              gene = genes[i];
 
-                function counters(i=0)
-                {
-                  val = document.getElementById("fitness_"+i).value;
-                  //.getAttribute("value");
-                  step = document.getElementById("fitness_"+i).getAttribute("step");
+              img = document.getElementById("img_gene_" + i);
 
-                    val = parseFloat(val) + parseFloat(step);
-                    document.getElementById("fitness_"+i).value = val;
-                //}
+              img.src = "https://picsum.photos/id/" + i + "/200";
+
+              // "{{url_for('static',filename='static/scene/gene_')}}" + i + ".png";
+              imgSrc = document.getElementById("img_gene_" + i).src;
+
+              const image = new Image();
+              image.src = imgSrc; //imageSources[i];
+              image.addEventListener("load", () => {
+                loadedImages++;
+                // image.width = desiredWidth;
+                // image.height = desiredHeight;
+                if (loadedImages === imageSources.length) {
+                  // All images are loaded, start drawing
+                  startDrawing();
                 }
-                {% for i in range(genes_percent|length) %}
-                document.getElementById("population_{{i}}").addEventListener("mouseover",() => {
-                  const interval = setInterval(counters, 10,{{i}});
-                  document.getElementById("population_{{i}}").addEventListener('mouseout', () => {
-                    clearInterval(interval);
-                  });
-                });
-                {% endfor %}
-                //setTimeout(10);
-                let evolveBtn = document
-                .getElementById("evolve");
+              });
+              images.push(image);
+              interval2[i] = setInterval(counters2, 10, i);
+              // for (var j = 0; j < gene.length; j++) {
+              //   progress = document.getElementById("gene_" + i + "_" + j);
+              //   progress.setAttribute("aria-valuenow", gene[j] * 100);
 
-                evolveBtn.addEventListener("click", function (e) {
-                  evolveBtn.disabled = true;
-                  e.preventDefault()
-                  //data = document.ga_evolve
-                  var params = '';
-                  for( var i=0; i<document.ga_evolve.elements.length; i++ )
-                  {
-                    var fieldName = document.ga_evolve.elements[i].name;
-                    var fieldValue = document.ga_evolve.elements[i].value;
-
-                    params += fieldName + '=' + fieldValue + '&';
-                  }
-                  var xhr = new XMLHttpRequest();
-                  xhr.open("GET", "/evolve_clicked?"+params, true);
-                  xhr.onreadystatechange = function () {
-                    if (xhr.readyState === 4 && xhr.status === 200) {
-                      // Handle the response from the backend, if needed
-                      d = JSON.parse(xhr.responseText);
-                      genes = d.percent;
-                      for (var i=0;i<genes.length;i++){
-                        gene = genes[i];
-
-                        img = document.getElementById("img_gene_"+i)
-
-                        img.src="{{url_for('static',filename='scene/gene_')}}"+i+".png";
-
-                        //get each population img
-                        const pop = document.getElementById("pop");
-                        // generate random x,y location
-                        x = 200;
-                        y = 250;
-                        ctx.drawImage(img, x,y);
-
-                        for(var j=0;j<gene.length;j++){
-                          progress = document.getElementById("gene_"+i+"_"+j);
-                          progress.setAttribute('aria-valuenow',gene[j]*100);
-
-                          progress.style.width=gene[j]*100+"%";
-                          //console.log(progress.innerHTML);
-                        }
-                        document.getElementById("fitness_"+i).value=0;
-                        evolveBtn.disabled = false;
-                      }
-                      //id=
-                      //<b>jhjkh${xhr.responseText}</b>
-                      //resultContainer.innerHTML = `<img src="https://picsum.photos/id/1/200" />`;
-                    }
-                  };
-                  xhr.send();
-                });
-      </script>
-      <!-- JavaScript Bundle with Popper -->
-      <script
-        src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"
-        integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz"
-        crossorigin="anonymous"
-      ></script>
-    </div>
+              //   progress.style.width = gene[j] * 100 + "%";
+              //   //console.log(progress.innerHTML);
+              // }
+              document.getElementById("auto_fitness_" + i).value = 0;
+            }
+            evolveBtn.disabled = false;
+            //id=
+            //<b>test${xhr.responseText}</b>
+            //resultContainer.innerHTML = `<img src="https://picsum.photos/id/1/200" />`;
+          }
+        };
+        xhr.send();
+      });
+    </script>
+    <!-- JavaScript Bundle with Popper -->
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4"
+      crossorigin="anonymous"
+    ></script>
   </body>
 </html>

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
     <!-- CSS only -->
     <link
@@ -8,6 +8,26 @@
       integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65"
       crossorigin="anonymous"
     />
+    <style>
+      #imageStrip {
+        height: 100vh;
+        overflow-y: auto;
+      }
+      #background {
+        padding-left: 0;
+
+        background-image: url(environment2.png);
+        background-repeat: repeat;
+        height: 100%;
+        min-height: 100vh;
+      }
+      #myCanvas {
+        left: 0;
+        border: 1px solid rgb(34, 200, 109);
+        height: 100%;
+        min-height: 100vh;
+      }
+    </style>
     <meta charset="utf-8" />
     <title>Genetic Algorithm Interactive Design</title>
     <style>
@@ -16,210 +36,313 @@
   </head>
   <body class="d-flex align-items-center py-4 bg-body-tertiary">
     <!-- Add your HTML elements for user interaction here -->
-    <main class="form-signin w-100 m-auto">
+    <main>
       <div class="container">
+        <div class="row">
+          <div
+            class="alert alert-success alert-dismissible fade show text-center"
+          >
+            <button
+              title="evolve-button"
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="alert"
+              onclick=""
+            ></button>
+            <strong>Note:</strong> Ensure the patterns on the background image
+            are <b>clicked</b> in the order of obviousness.
+          </div>
+        </div>
         <div class="container text-center">
           <div class="row">
-            <div
-              id="background"
-              class="col-lg-8"
-              style="
-                background-image: url(environment2.png);
-                background-repeat: repeat;
-                height: 100vh;
-              "
-            >
-              <canvas
-                height="1000"
-                width="900"
-                id="myCanvas"
-                style="border: 1px solid rgb(34, 200, 109)"
-              ></canvas>
+            <div class="d-grid gap-3 py-1">
+              <button id="evolve" class="btn btn-success btn-block">
+                Click To Evolve Generation (<span class="badge bg-danger"
+                  >4</span
+                >)
+              </button>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-lg-8">Background</div>
+            <div class="col-lg-4">Sample Population</div>
+          </div>
+          <div class="row">
+            <div id="background" class="col-lg-8">
+              <canvas width="900" id="myCanvas"></canvas>
             </div>
             <div class="col-lg-4">
-              <div class="row" id="imageStrip">
-                <div class="col">
-                  <img
-                    class="img-thumbnail"
-                    src="scene/gene_0.png"
-                    id="img_gene_0"
-                  />
-                  <small class="text-body-secondary">Fitness Score:</small>
-                  <input
-                    readonly="readonly"
-                    type="number"
-                    id="auto_fitness_0"
-                    name="fitness[0]"
-                    value="0"
-                    max="100"
-                    step="0.01"
-                    onClick="clearTimer(0)"
-                  />
-                </div>
+              <form
+                action="/evolve"
+                method="GET"
+                name="ga_evolve"
+                enctype="text/plain"
+              >
+                <div class="row" id="imageStrip">
+                  <div class="col section" id="section0">
+                    <img
+                      alt="img_gene_0"
+                      class="img-thumbnail"
+                      src="scene/gene_0.png"
+                      id="img_gene_0"
+                      width="200"
+                    />
+                    <br />
+                    <label for="auto_fitness_0">Fitness Score:</label> <br />
+                    <input
+                      readonly="readonly"
+                      type="number"
+                      id="auto_fitness_0"
+                      name="fitness[0]"
+                      value="0"
+                      max="100"
+                      step="0.01"
+                      onClick="clearTimer(0)"
+                    />
+                    <a
+                      href="scene/gene_0.png"
+                      class="btn btn-primary"
+                      target="_blank"
+                      >Download Hi-Res</a
+                    >
+                  </div>
 
-                <div class="col">
-                  <img
-                    class="img-thumbnail"
-                    src="scene/gene_1.png"
-                    id="img_gene_1"
-                  />
-                  <small class="text-body-secondary">Fitness Score:</small>
-                  <input
-                    readonly="readonly"
-                    type="number"
-                    id="auto_fitness_1"
-                    name="fitness[1]"
-                    value="0"
-                    max="100"
-                    step="0.01"
-                    onClick="clearTimer(1)"
-                  />
+                  <div class="col section" id="section1">
+                    <img
+                      alt="img_gene_1"
+                      class="img-thumbnail"
+                      src="scene/gene_1.png"
+                      id="img_gene_1"
+                      width="200"
+                    /><br />
+                    <label for="auto_fitness_1">Fitness Score:</label> <br />
+                    <input
+                      readonly="readonly"
+                      type="number"
+                      id="auto_fitness_1"
+                      name="fitness[1]"
+                      value="0"
+                      max="100"
+                      step="0.01"
+                      onClick="clearTimer(1)"
+                    />
+                    <a
+                      href="scene/gene_1.png"
+                      class="btn btn-primary"
+                      target="_blank"
+                      >Download Hi-Res</a
+                    >
+                  </div>
+                  <div class="col section" id="section2">
+                    <img
+                      alt="img_gene_2"
+                      class="img-thumbnail"
+                      src="scene/gene_2.png"
+                      id="img_gene_2"
+                      width="200"
+                    /><br />
+                    <label for="auto_fitness_2">Fitness Score:</label> <br />
+                    <input
+                      readonly="readonly"
+                      type="number"
+                      id="auto_fitness_2"
+                      name="fitness[2]"
+                      value="0"
+                      max="100"
+                      step="0.01"
+                      onClick="clearTimer(2)"
+                    />
+                    <a
+                      href="scene/gene_2.png"
+                      class="btn btn-primary"
+                      target="_blank"
+                      >Download Hi-Res</a
+                    >
+                  </div>
+                  <div class="col section" id="section3">
+                    <img
+                      alt="img_gene_3"
+                      class="img-thumbnail"
+                      src="scene/gene_3.png"
+                      id="img_gene_3"
+                      width="200"
+                    /><br />
+                    <label for="auto_fitness_3">Fitness Score:</label> <br />
+                    <input
+                      readonly="readonly"
+                      type="number"
+                      id="auto_fitness_3"
+                      name="fitness[3]"
+                      value="0"
+                      max="100"
+                      step="0.01"
+                      onClick="clearTimer(3)"
+                    />
+                    <a
+                      href="scene/gene_3.png"
+                      class="btn btn-primary"
+                      target="_blank"
+                      >Download Hi-Res</a
+                    >
+                  </div>
+                  <div class="col section" id="section4">
+                    <img
+                      alt="img_gene_4"
+                      class="img-thumbnail"
+                      src="scene/gene_4.png"
+                      id="img_gene_4"
+                      width="200"
+                    /><br />
+                    <label for="auto_fitness_4">Fitness Score:</label> <br />
+                    <input
+                      readonly="readonly"
+                      type="number"
+                      id="auto_fitness_4"
+                      name="fitness[4]"
+                      value="0"
+                      max="100"
+                      step="0.01"
+                      onClick="clearTimer(4)"
+                    />
+                    <a
+                      href="scene/gene_4.png"
+                      class="btn btn-primary"
+                      target="_blank"
+                      >Download Hi-Res</a
+                    >
+                  </div>
+                  <div class="col section" id="section5">
+                    <img
+                      alt="img_gene_5"
+                      class="img-thumbnail"
+                      src="scene/gene_5.png"
+                      id="img_gene_5"
+                      width="200"
+                    /><br />
+                    <label for="auto_fitness_5">Fitness Score:</label> <br />
+                    <input
+                      readonly="readonly"
+                      type="number"
+                      id="auto_fitness_5"
+                      name="fitness[5]"
+                      value="0"
+                      max="100"
+                      step="0.01"
+                      onClick="clearTimer(5)"
+                    />
+                    <a
+                      href="scene/gene_5.png"
+                      class="btn btn-primary"
+                      target="_blank"
+                      >Download Hi-Res</a
+                    >
+                  </div>
+                  <div class="col section" id="section6">
+                    <img
+                      alt="img_gene_6"
+                      class="img-thumbnail"
+                      src="scene/gene_6.png"
+                      id="img_gene_6"
+                      width="200"
+                    /><br />
+                    <label for="auto_fitness_6">Fitness Score:</label> <br />
+                    <input
+                      readonly="readonly"
+                      type="number"
+                      id="auto_fitness_6"
+                      name="fitness[6]"
+                      value="0"
+                      max="100"
+                      step="0.01"
+                      onClick="clearTimer(6)"
+                    />
+                    <a
+                      href="scene/gene_6.png"
+                      class="btn btn-primary"
+                      target="_blank"
+                      >Download Hi-Res</a
+                    >
+                  </div>
+                  <div class="col section" id="section7">
+                    <img
+                      alt="img_gene_7"
+                      class="img-thumbnail"
+                      src="scene/gene_7.png"
+                      id="img_gene_7"
+                      width="200"
+                    /><br />
+                    <label for="auto_fitness_7">Fitness Score:</label> <br />
+                    <input
+                      readonly="readonly"
+                      type="number"
+                      id="auto_fitness_7"
+                      name="fitness[7]"
+                      value="0"
+                      max="100"
+                      step="0.01"
+                      onClick="clearTimer(7)"
+                    />
+                    <a
+                      href="scene/gene_7.png"
+                      class="btn btn-primary"
+                      target="_blank"
+                      >Download Hi-Res</a
+                    >
+                  </div>
+                  <div class="col section" id="section8">
+                    <img
+                      alt="img_gene_8"
+                      class="img-thumbnail"
+                      src="scene/gene_8.png"
+                      id="img_gene_8"
+                      width="200"
+                    /><br />
+                    <label for="auto_fitness_8">Fitness Score:</label> <br />
+                    <input
+                      readonly="readonly"
+                      type="number"
+                      id="auto_fitness_8"
+                      name="fitness[8]"
+                      value="0"
+                      max="100"
+                      step="0.01"
+                      onClick="clearTimer(8)"
+                    />
+                    <a
+                      href="scene/gene_8.png"
+                      class="btn btn-primary"
+                      target="_blank"
+                      >Download Hi-Res</a
+                    >
+                  </div>
+                  <div class="col section" id="section9">
+                    <img
+                      alt="img_gene_9"
+                      class="img-thumbnail"
+                      src="scene/gene_9.png"
+                      id="img_gene_9"
+                      width="200"
+                    /><br />
+                    <label for="auto_fitness_9">Fitness Score:</label> <br />
+                    <input
+                      readonly="readonly"
+                      type="number"
+                      id="auto_fitness_9"
+                      name="fitness[9]"
+                      value="0"
+                      max="100"
+                      step="0.01"
+                      onClick="clearTimer(9)"
+                    />
+                    <a
+                      href="scene/gene_9.png"
+                      class="btn btn-primary"
+                      target="_blank"
+                      >Download Hi-Res</a
+                    >
+                  </div>
                 </div>
-                <div class="col">
-                  <img
-                    class="img-thumbnail"
-                    src="scene/gene_2.png"
-                    id="img_gene_2"
-                  />
-                  <small class="text-body-secondary">Fitness Score:</small>
-                  <input
-                    readonly="readonly"
-                    type="number"
-                    id="auto_fitness_2"
-                    name="fitness[2]"
-                    value="0"
-                    max="100"
-                    step="0.01"
-                    onClick="clearTimer(2)"
-                  />
-                </div>
-                <div class="col">
-                  <img
-                    class="img-thumbnail"
-                    src="scene/gene_3.png"
-                    id="img_gene_3"
-                  />
-                  <small class="text-body-secondary">Fitness Score:</small>
-                  <input
-                    readonly="readonly"
-                    type="number"
-                    id="auto_fitness_3"
-                    name="fitness[3]"
-                    value="0"
-                    max="100"
-                    step="0.01"
-                    onClick="clearTimer(3)"
-                  />
-                </div>
-                <div class="col">
-                  <img
-                    class="img-thumbnail"
-                    src="scene/gene_4.png"
-                    id="img_gene_4"
-                  />
-                  <small class="text-body-secondary">Fitness Score:</small>
-                  <input
-                    readonly="readonly"
-                    type="number"
-                    id="auto_fitness_4"
-                    name="fitness[4]"
-                    value="0"
-                    max="100"
-                    step="0.01"
-                    onClick="clearTimer(4)"
-                  />
-                </div>
-                <div class="col">
-                  <img
-                    class="img-thumbnail"
-                    src="scene/gene_5.png"
-                    id="img_gene_5"
-                  />
-                  <small class="text-body-secondary">Fitness Score:</small>
-                  <input
-                    readonly="readonly"
-                    type="number"
-                    id="auto_fitness_5"
-                    name="fitness[5]"
-                    value="0"
-                    max="100"
-                    step="0.01"
-                    onClick="clearTimer(5)"
-                  />
-                </div>
-                <div class="col">
-                  <img
-                    class="img-thumbnail"
-                    src="scene/gene_6.png"
-                    id="img_gene_6"
-                  />
-                  <small class="text-body-secondary">Fitness Score:</small>
-                  <input
-                    readonly="readonly"
-                    type="number"
-                    id="auto_fitness_6"
-                    name="fitness[6]"
-                    value="0"
-                    max="100"
-                    step="0.01"
-                    onClick="clearTimer(6)"
-                  />
-                </div>
-                <div class="col">
-                  <img
-                    class="img-thumbnail"
-                    src="scene/gene_7.png"
-                    id="img_gene_7"
-                  />
-                  <small class="text-body-secondary">Fitness Score:</small>
-                  <input
-                    readonly="readonly"
-                    type="number"
-                    id="auto_fitness_7"
-                    name="fitness[7]"
-                    value="0"
-                    max="100"
-                    step="0.01"
-                    onClick="clearTimer(7)"
-                  />
-                </div>
-                <div class="col">
-                  <img
-                    class="img-thumbnail"
-                    src="scene/gene_8.png"
-                    id="img_gene_8"
-                  />
-                  <small class="text-body-secondary">Fitness Score:</small>
-                  <input
-                    readonly="readonly"
-                    type="number"
-                    id="auto_fitness_8"
-                    name="fitness[8]"
-                    value="0"
-                    max="100"
-                    step="0.01"
-                    onClick="clearTimer(8)"
-                  />
-                </div>
-                <div class="col">
-                  <img
-                    class="img-thumbnail"
-                    src="scene/gene_9.png"
-                    id="img_gene_9"
-                  />
-                  <small class="text-body-secondary">Fitness Score:</small>
-                  <input
-                    readonly="readonly"
-                    type="number"
-                    id="auto_fitness_9"
-                    name="fitness[9]"
-                    value="0"
-                    max="100"
-                    step="0.01"
-                    onClick="clearTimer(9)"
-                  />
-                </div>
-              </div>
+              </form>
             </div>
             <!-- <div class="row" id="imageStrip">
               <div class="col">
@@ -412,7 +535,8 @@
     <script>
       // Get the canvas element
       const canvas = document.getElementById("myCanvas");
-
+      const container = document.getElementById("imageStrip");
+      const sections = document.getElementsByClassName("section");
       // Get the canvas context
       const ctx = canvas.getContext("2d");
       let interval2 = [];
@@ -436,6 +560,23 @@
         "path/to/image3.jpg",
         "path/to/image3.jpg",
       ];
+
+      // Get the canvas container element
+      const canvasContainer = document.getElementById("background");
+
+      // Function to resize the canvas to fit the container width
+      function resizeCanvas() {
+        canvas.width = canvasContainer.clientWidth;
+        canvas.height = canvasContainer.clientHeight;
+
+        // Perform additional canvas drawing operations here if needed
+      }
+
+      // Initial canvas resizing
+      resizeCanvas();
+
+      // Attach event listener for window resize
+      window.addEventListener("resize", resizeCanvas);
 
       function counters2(i = 0) {
         val = document.getElementById("auto_fitness_" + i).value;
@@ -557,6 +698,7 @@
           ) {
             // Clicked on the image
             clearInterval(interval2[i]);
+            container.scrollTop = sections[i].offsetTop;
             console.log("Clicked on image", i + 1);
             break;
           }
@@ -632,6 +774,60 @@
         // console.log(img[2]);
         // imgStrip.innerHTML = content;
       };
+
+      let evolveBtn = document.getElementById("evolve");
+
+      evolveBtn.addEventListener("click", function (e) {
+        evolveBtn.disabled = true;
+        e.preventDefault();
+        //data = document.ga_evolve
+        var params = "";
+        for (var i = 0; i < document.ga_evolve.elements.length; i++) {
+          var fieldName = document.ga_evolve.elements[i].name;
+          var fieldValue = document.ga_evolve.elements[i].value;
+
+          params += fieldName + "=" + fieldValue + "&";
+        }
+        var xhr = new XMLHttpRequest();
+        xhr.open("GET", "/evolve_clicked?" + params, true);
+        xhr.onreadystatechange = function () {
+          if (xhr.readyState === 4 && xhr.status === 200) {
+            // Handle the response from the backend, if needed
+            d = JSON.parse(xhr.responseText);
+            genes = d.percent;
+            for (var i = 0; i < genes.length; i++) {
+              gene = genes[i];
+
+              img = document.getElementById("img_gene_" + i);
+
+              img.src = "https://picsum.photos/id/" + i + "/200";
+
+              // "{{url_for('static',filename='scene/gene_')}}" + i + ".png";
+
+              //get each population img
+              const pop = document.getElementById("pop");
+              // generate random x,y location
+              x = 200;
+              y = 250;
+              ctx.drawImage(img, x, y);
+
+              // for (var j = 0; j < gene.length; j++) {
+              //   progress = document.getElementById("gene_" + i + "_" + j);
+              //   progress.setAttribute("aria-valuenow", gene[j] * 100);
+
+              //   progress.style.width = gene[j] * 100 + "%";
+              //   //console.log(progress.innerHTML);
+              // }
+              document.getElementById("fitness_" + i).value = 0;
+              evolveBtn.disabled = false;
+            }
+            //id=
+            //<b>test${xhr.responseText}</b>
+            //resultContainer.innerHTML = `<img src="https://picsum.photos/id/1/200" />`;
+          }
+        };
+        xhr.send();
+      });
     </script>
     <!-- JavaScript Bundle with Popper -->
     <script
