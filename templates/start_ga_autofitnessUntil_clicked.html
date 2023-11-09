@@ -17,7 +17,7 @@
       #background {
         padding-left: 0;
 
-        background-image: url(static/environment2.png);
+        background-image: url(data:image/png;base64,{{data.population.img_text}});
         background-repeat: repeat;
         height: 100%;
         min-height: 100vh;
@@ -61,7 +61,7 @@
                 Click To Evolve Generation (<span
                   id="generation"
                   class="badge bg-danger"
-                  >4</span
+                  >{{data.population.generations}}</span
                 >)
               </button>
             </div>
@@ -754,7 +754,7 @@
               startDrawing();
             }
           });
-          images.push(image);
+          images[i] = image;
           interval2[i] = setInterval(counters2, 10, i);
           // document
           //   .getElementById("auto_fitness_" + i)
@@ -798,19 +798,21 @@
             // Handle the response from the backend, if needed
             d = JSON.parse(xhr.responseText);
             genes = d.percent;
-            ctx.clearRect(0, 0, ctx.width, ctx.height);
+            document.getElementById("generation").innerHTML = d.generations;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            loadedImages = 0;
             for (var i = 0; i < genes.length; i++) {
               gene = genes[i];
 
               img = document.getElementById("img_gene_" + i);
-
-              img.src = "https://picsum.photos/id/" + i + "/200";
+              src = "static/scene/gene_" + i + ".png";
+              img.src = src; //"https://picsum.photos/id/" + i + "/200";
 
               // "{{url_for('static',filename='static/scene/gene_')}}" + i + ".png";
-              imgSrc = document.getElementById("img_gene_" + i).src;
+              //imgSrc = document.getElementById("img_gene_" + i).src;
 
               const image = new Image();
-              image.src = imgSrc; //imageSources[i];
+              image.src = src; //imageSources[i];
               image.addEventListener("load", () => {
                 loadedImages++;
                 // image.width = desiredWidth;

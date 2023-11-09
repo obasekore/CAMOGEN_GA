@@ -167,7 +167,8 @@ def startGA():
     data = {
         "percent": genes.tolist(),
         "genes": colour[:sample_sol_pop],  # .tolist()
-        "img_text": jpg_as_text
+        "img_text": jpg_as_text,
+        'generations': ga_instance.generations_completed
     }
     # templates\start_ga_autofitnessUntil_clicked.html
     return render_template('start_ga_autofitnessUntil_clicked.html', data={'population': data})
@@ -301,7 +302,8 @@ def evolve_autofitnessUntil_clicked():
     subprocess.run(["blender", "-b", blender_scene,
                     "--python", blender_script, '--'] + argv)
     data = {
-        "percent": genes.tolist()
+        "percent": genes.tolist(),
+        "generations": ga_instance.generations_completed
     }
     # formData
     return jsonify(data)

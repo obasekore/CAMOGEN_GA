@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65"
+      crossorigin="anonymous"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.bundle.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Camouflage Design</title>
+  </head>
+  <body>
+    <div class="offcanvas offcanvas-end" id="demo">
+      <div class="offcanvas-header">
+        <h2 class="offcanvas-title">Camouflage Design</h2>
+
+        <button
+          title="Close"
+          id="closeSideBar"
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="offcanvas"
+        ></button>
+      </div>
+      <!-- Button trigger modal -->
+      <button
+        type="button"
+        class="btn btn-primary"
+        id="triggerModal"
+        data-bs-toggle="modal"
+        data-bs-target="#exampleModal"
+      >
+        Launch demo modal
+      </button>
+      <button id="sudo">Click this</button>
+      <script>
+        $("#triggerModal").click(function () {
+          // setTimeout(() => {
+          //   console.log("World!");
+          // }, 2000);
+          // $("#closeSideBar").click();
+          // $("#triggerModal").click();
+        });
+      </script>
+      <!-- Modal -->
+      <div
+        class="modal fade"
+        id="exampleModal"
+        tabindex="-1"
+        aria-labelledby="exampleModalLabel"
+        aria-hidden="true"
+      >
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="exampleModalLabel">Modal title</h5>
+              <button
+                type="button"
+                class="btn-close"
+                data-bs-dismiss="modal"
+                aria-label="Close"
+              ></button>
+            </div>
+            <div class="modal-body">...</div>
+            <div class="modal-footer">
+              <button
+                type="button"
+                class="btn btn-secondary"
+                data-bs-dismiss="modal"
+              >
+                Close
+              </button>
+              <button type="button" class="btn btn-primary">
+                Save changes
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="offcanvas-body">
+        <div id="accordion">
+          <div class="card">
+            <div class="card-header">
+              <a class="btn" data-bs-toggle="collapse" href="#collapseOne">
+                Initialize
+              </a>
+            </div>
+            <div
+              id="collapseOne"
+              class="collapse show"
+              data-bs-parent="#accordion"
+            >
+              <div class="card-body">
+                <form action="/" enctype="multipart/form-data" method="POST">
+                  <div class="mb-3 mt-3">
+                    <label for="k-colour" class="form-label"
+                      >Number of Colour(s) to extract</label
+                    >
+                    <input
+                      type="number"
+                      id="k-colour"
+                      min="1"
+                      max="10"
+                      value="5"
+                      class="form-control"
+                      name="colours"
+                      placeholder="No. of colours"
+                    />
+                  </div>
+                  <div class="mb-3 mt-3">
+                    <label for="formFileLg" class="form-label"
+                      >Browse background image</label
+                    >
+                    <input
+                      class="form-control form-control-lg"
+                      id="formFileLg"
+                      type="file"
+                      name="background"
+                      placeholder="Select the background image"
+                      required
+                      accept="*.png"
+                    />
+                  </div>
+                  <div class="mb-3 mt-3">
+                    <div class="form-check">
+                      <input
+                        type="radio"
+                        class="form-check-input"
+                        id="radio1"
+                        name="optMethod"
+                        value="analyse_design"
+                        checked
+                      />
+                      <label class="form-check-label" for="radio1"
+                        >Analyse Design</label
+                      >
+                    </div>
+                    <div class="form-check">
+                      <input
+                        type="radio"
+                        class="form-check-input"
+                        id="radio2"
+                        name="optMethod"
+                        value="GA_design"
+                      />
+                      <label class="form-check-label" for="radio2"
+                        >Genetic Evolution Design</label
+                      >
+                    </div>
+                  </div>
+                  <br />
+                  <div class="mb-3 mt-3">
+                    <input
+                      type="submit"
+                      value="Submit"
+                      class="btn btn-primary w-100 py-2"
+                    />
+                    <button
+                      type="button"
+                      class="btn btn-primary"
+                      id="myModalTrigger"
+                      data-bs-target="#myModal"
+                      data-bs-toggle="modal"
+                    >
+                      Open Last Analysis
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+          {%if data.start!=True%}
+          <div class="card">
+            <div class="card-header">
+              <a
+                class="collapsed btn"
+                data-bs-toggle="collapse"
+                href="#collapseTwo"
+              >
+                Top 10 Individuals
+              </a>
+            </div>
+            <div id="collapseTwo" class="collapse" data-bs-parent="#accordion">
+              <div class="card-body">
+                <form name="ga_evolve" enctype="text/plain" method="get">
+                  <div class="row" id="imageStrip">
+                    <div class="col section" id="section0">
+                      <img
+                        alt="img_gene_0"
+                        class="img-thumbnail"
+                        src="../static/scene/gene_0.png"
+                        id="img_gene_0"
+                        width="200"
+                      />
+                      <br />
+                      <label for="auto_fitness_0">Fitness Score:</label> <br />
+                      <input
+                        readonly="readonly"
+                        type="number"
+                        id="auto_fitness_0"
+                        name="fitness[0]"
+                        value="0"
+                        max="100"
+                        step="0.01"
+                        onClick="clearTimer(0)"
+                      />
+                      <a
+                        href="../static/scene/gene_0.png"
+                        class="btn btn-primary mt-2"
+                        target="_blank"
+                        >Download Hi-Res</a
+                      >
+                    </div>
+
+                    <div class="col section" id="section1">
+                      <img
+                        alt="img_gene_1"
+                        class="img-thumbnail"
+                        src="../static/scene/gene_1.png"
+                        id="img_gene_1"
+                        width="200"
+                      /><br />
+                      <label for="auto_fitness_1">Fitness Score:</label> <br />
+                      <input
+                        readonly="readonly"
+                        type="number"
+                        id="auto_fitness_1"
+                        name="fitness[1]"
+                        value="0"
+                        max="100"
+                        step="0.01"
+                        onClick="clearTimer(1)"
+                      />
+                      <a
+                        href="../static/scene/gene_1.png"
+                        class="btn btn-primary"
+                        target="_blank"
+                        >Download Hi-Res</a
+                      >
+                    </div>
+                    <div class="col section" id="section2">
+                      <img
+                        alt="img_gene_2"
+                        class="img-thumbnail"
+                        src="../static/scene/gene_2.png"
+                        id="img_gene_2"
+                        width="200"
+                      /><br />
+                      <label for="auto_fitness_2">Fitness Score:</label> <br />
+                      <input
+                        readonly="readonly"
+                        type="number"
+                        id="auto_fitness_2"
+                        name="fitness[2]"
+                        value="0"
+                        max="100"
+                        step="0.01"
+                        onClick="clearTimer(2)"
+                      />
+                      <a
+                        href="../static/scene/gene_2.png"
+                        class="btn btn-primary"
+                        target="_blank"
+                        >Download Hi-Res</a
+                      >
+                    </div>
+                    <div class="col section" id="section3">
+                      <img
+                        alt="img_gene_3"
+                        class="img-thumbnail"
+                        src="../static/scene/gene_3.png"
+                        id="img_gene_3"
+                        width="200"
+                      /><br />
+                      <label for="auto_fitness_3">Fitness Score:</label> <br />
+                      <input
+                        readonly="readonly"
+                        type="number"
+                        id="auto_fitness_3"
+                        name="fitness[3]"
+                        value="0"
+                        max="100"
+                        step="0.01"
+                        onClick="clearTimer(3)"
+                      />
+                      <a
+                        href="../static/scene/gene_3.png"
+                        class="btn btn-primary"
+                        target="_blank"
+                        >Download Hi-Res</a
+                      >
+                    </div>
+                    <div class="col section" id="section4">
+                      <img
+                        alt="img_gene_4"
+                        class="img-thumbnail"
+                        src="../static/scene/gene_4.png"
+                        id="img_gene_4"
+                        width="200"
+                      /><br />
+                      <label for="auto_fitness_4">Fitness Score:</label> <br />
+                      <input
+                        readonly="readonly"
+                        type="number"
+                        id="auto_fitness_4"
+                        name="fitness[4]"
+                        value="0"
+                        max="100"
+                        step="0.01"
+                        onClick="clearTimer(4)"
+                      />
+                      <a
+                        href="../static/scene/gene_4.png"
+                        class="btn btn-primary"
+                        target="_blank"
+                        >Download Hi-Res</a
+                      >
+                    </div>
+                    <div class="col section" id="section5">
+                      <img
+                        alt="img_gene_5"
+                        class="img-thumbnail"
+                        src="../static/scene/gene_5.png"
+                        id="img_gene_5"
+                        width="200"
+                      /><br />
+                      <label for="auto_fitness_5">Fitness Score:</label> <br />
+                      <input
+                        readonly="readonly"
+                        type="number"
+                        id="auto_fitness_5"
+                        name="fitness[5]"
+                        value="0"
+                        max="100"
+                        step="0.01"
+                        onClick="clearTimer(5)"
+                      />
+                      <a
+                        href="../static/scene/gene_5.png"
+                        class="btn btn-primary"
+                        target="_blank"
+                        >Download Hi-Res</a
+                      >
+                    </div>
+                    <div class="col section" id="section6">
+                      <img
+                        alt="img_gene_6"
+                        class="img-thumbnail"
+                        src="../static/scene/gene_6.png"
+                        id="img_gene_6"
+                        width="200"
+                      /><br />
+                      <label for="auto_fitness_6">Fitness Score:</label> <br />
+                      <input
+                        readonly="readonly"
+                        type="number"
+                        id="auto_fitness_6"
+                        name="fitness[6]"
+                        value="0"
+                        max="100"
+                        step="0.01"
+                        onClick="clearTimer(6)"
+                      />
+                      <a
+                        href="../static/scene/gene_6.png"
+                        class="btn btn-primary"
+                        target="_blank"
+                        >Download Hi-Res</a
+                      >
+                    </div>
+                    <div class="col section" id="section7">
+                      <img
+                        alt="img_gene_7"
+                        class="img-thumbnail"
+                        src="../static/scene/gene_7.png"
+                        id="img_gene_7"
+                        width="200"
+                      /><br />
+                      <label for="auto_fitness_7">Fitness Score:</label> <br />
+                      <input
+                        readonly="readonly"
+                        type="number"
+                        id="auto_fitness_7"
+                        name="fitness[7]"
+                        value="0"
+                        max="100"
+                        step="0.01"
+                        onClick="clearTimer(7)"
+                      />
+                      <a
+                        href="../static/scene/gene_7.png"
+                        class="btn btn-primary"
+                        target="_blank"
+                        >Download Hi-Res</a
+                      >
+                    </div>
+                    <div class="col section" id="section8">
+                      <img
+                        alt="img_gene_8"
+                        class="img-thumbnail"
+                        src="../static/scene/gene_8.png"
+                        id="img_gene_8"
+                        width="200"
+                      /><br />
+                      <label for="auto_fitness_8">Fitness Score:</label> <br />
+                      <input
+                        readonly="readonly"
+                        type="number"
+                        id="auto_fitness_8"
+                        name="fitness[8]"
+                        value="0"
+                        max="100"
+                        step="0.01"
+                        onClick="clearTimer(8)"
+                      />
+                      <a
+                        href="../static/scene/gene_8.png"
+                        class="btn btn-primary"
+                        target="_blank"
+                        >Download Hi-Res</a
+                      >
+                    </div>
+                    <div class="col section" id="section9">
+                      <img
+                        alt="img_gene_9"
+                        class="img-thumbnail"
+                        src="../static/scene/gene_9.png"
+                        id="img_gene_9"
+                        width="200"
+                      /><br />
+                      <label for="auto_fitness_9">Fitness Score:</label> <br />
+                      <input
+                        readonly="readonly"
+                        type="number"
+                        id="auto_fitness_9"
+                        name="fitness[9]"
+                        value="0"
+                        max="100"
+                        step="0.01"
+                        onClick="clearTimer(9)"
+                      />
+                      <a
+                        href="../static/scene/gene_9.png"
+                        class="btn btn-primary"
+                        target="_blank"
+                        >Download Hi-Res</a
+                      >
+                    </div>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+          {%endif%}
+        </div>
+
+        <hr class="border border-primary border-3 opacity-75" />
+        <br />
+        <span
+          class="alert alert-dark text-bg-dark"
+          style="position: absolute; bottom: 0"
+          >Copyright of Digital Fashion Design Lab 2023</span
+        >
+      </div>
+    </div>
+
+    <div
+      class="container-fluid mt-0"
+      id="background"
+      style="
+        background-image: url(environment2.png);
+        background-repeat: repeat;
+        height: 95%;
+        min-height: 99vh;
+      "
+    >
+      {%if data.start!=True%}{% include '_analyse_design.html'%}{%endif%}
+    </div>
+    <h1 class="z-3">
+      <i
+        id="show_sideBaar"
+        class="bi bi-caret-left"
+        data-bs-toggle="offcanvas"
+        data-bs-target="#demo"
+        style="
+          position: absolute;
+          top: 50%;
+          right: 0;
+          background-color: aliceblue;
+        "
+      ></i>
+    </h1>
+    <button
+      onclick="evolve()"
+      type="button"
+      class="btn btn-primary"
+      style="position: absolute; bottom: 0; left: 0"
+    >
+      Evolve <span class="badge bg-danger">4</span>
+      <span class="badge bg-success" id="individual_clicked">0</span>/10
+    </button>
+    {%if data.start!=True%}
+    <div class="modal" id="myModal">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <!-- Modal Header -->
+          <div class="modal-header">
+            <h4 class="modal-title">Design Analysis</h4>
+            <button class="btn-close" type="button" data-bs-dismiss="modal">
+              .
+            </button>
+          </div>
+
+          <!-- Modal Body -->
+          <div class="modal-body">No Design Yet...</div>
+
+          <div class="modal-footer">
+            <button class="btn btn-danger" data-bs-dismiss="modal">
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script>
+      var interval2 = [];
+      const max_height = $("#background").innerHeight() - 50;
+      const max_width = $("#background").innerWidth() - 50;
+      const individual_size = 50;
+      function evolve() {
+        var params = "";
+        for (var i = 0; i < document.ga_evolve.elements.length; i++) {
+          var fieldName = document.ga_evolve.elements[i].name;
+          var fieldValue = document.ga_evolve.elements[i].value;
+
+          params += fieldName + "=" + fieldValue + "&";
+        }
+        $.get("/evolve_clicked?" + params, function (data, status) {
+          alert("Data: " + data + "\nStatus: " + status);
+          randomlyPlaceIndividual();
+          $("#individual_clicked").text("0");
+        });
+      }
+      function randomIntFromInterval(min, max) {
+        // min and max included
+        return Math.floor(Math.random() * (max - min + 1) + min);
+      }
+      function clearTimer(i) {
+        clearInterval(interval2[i]);
+        val = parseInt($("#individual_clicked").text());
+        val += 1;
+        $("#individual_clicked").text(val);
+      }
+      function counters2(i = 0) {
+        val = $("#auto_fitness_" + i).val();
+        //.getAttribute("value");
+        step = $("#auto_fitness_" + i).attr("step");
+
+        val = parseFloat(val) + parseFloat(step);
+        $("#auto_fitness_" + i).val(val);
+        //}
+      }
+      function randomlyPlaceIndividual(params = 0) {
+        var template = "";
+        var text = "";
+
+        for (cnt = 0; cnt < 10; cnt++) {
+          x = randomIntFromInterval(0, max_width);
+          y = randomIntFromInterval(0, max_height);
+          text = `<img
+            src="../static/scene/gene_${cnt}.png"
+            style="position: absolute; width: ${individual_size}px; top: ${y}px; left: ${x}px"
+            onClick="clearTimer(${cnt})"
+            />`;
+          template += text;
+          interval2[cnt] = setInterval(counters2, 10, cnt);
+        }
+        // var template = $("#img_indiv_0").html();
+        // var $elem = $(template);
+        // $elem.css("width: 20px");
+        //var template = $elem.get(0).outerHTML
+        console.log(x, y, max_height, max_width, template);
+        $("#background").html(template);
+      }
+
+      $(document).ready(function () {
+        randomlyPlaceIndividual();
+      });
+    </script>
+    {%endif%}
+    <script>
+      $(document).ready(function () {
+        $("#show_sideBaar").click();
+      });
+    </script>
+  </body>
+</html>
