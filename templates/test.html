@@ -262,7 +262,7 @@ $('#btnSubmit').click(function(e){
     e.preventDefault();
     var form = $('#upload_form')[0]; // You need to use standard javascript object here
     var formData = new FormData(form);
-    urlLink = (formData.get('optMethod')=='GA_design')? '/evolve': '/';
+    urlLink = (formData.get('optMethod')=='GA_design')? '/start': '';
     $.ajax({
         url: urlLink,
         data: formData,
@@ -272,7 +272,12 @@ $('#btnSubmit').click(function(e){
         // ... Other options like success and etc
         success: function (data) {
           if(formData.get('optMethod')=='analyse_design'){
+            
+            if (typeof myChart != "undefined") {
 
+              delete myChart
+              delete ctx
+            }
             $('#view_analyse_design').html(data)
             $('#lastAnalysis').click()
           }
@@ -287,6 +292,7 @@ $('#option1').click(function(){
 $('#option2').click(function(){
   $('#btnSubmit').val('Initialize Evolution Design')
 })
+// const myChart = new Chart(ctx, config);
     </script>
   </body>
 </html>

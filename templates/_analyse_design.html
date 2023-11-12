@@ -1,59 +1,57 @@
-<section class="position-relative py-4 py-xl-5">
+<!-- <section class="position-relative py-4 py-xl-5"> -->
   <div class="container position-relative">
-    <div class="row">
-      <div class="col">
-        
-        <div>
+    <div class="row">        
+        <div class="col-md-6">
           <canvas id="myChart"></canvas>
         </div>
-        <hr />
+        <!-- <hr /> -->
+        <div class="col-md-6">
+          <img
+            class="img-fluid"
+            src="data:image/png;base64, {{data.img_camo}}"
+            style="height: 180px"
+          />
 
-        <img
-          class="img-fluid"
-          src="data:image/png;base64, {{img_camo}}"
-          style="height: 180px"
-        />
+          <img
+            class="img-fluid"
+            src="data:image/png;base64, {{data.soldier_camo}}"
+            style="height: 180px"
+          />
 
-        <img
-          class="img-fluid"
-          src="data:image/png;base64, {{soldier_camo}}"
-          style="height: 180px"
-        />
-
-        <img
-          class="img-fluid"
-          src="data:image/png;base64, {{img}}"
-          style="height: 180px"
-        />
-
+          <img
+            class="img-fluid"
+            src="data:image/png;base64, {{data.img}}"
+            style="width: 360px;"
+          />
+        </div>
         
-      </div>
+      
     </div>
   </div>
-</section>
+<!-- </section> -->
 {%if request.method == "POST"%}
 <script>
 
-    const ctx = document.getElementById('myChart');
+    var ctx = document.getElementById('myChart');
 
-    const data = {
-      labels: {{labels}},
+    var data = {
+      labels: {{data.labels}},
       datasets: [{
         label: 'Area occupied',
-        data: {{sizes}},
+        data: {{data.sizes}},
         backgroundColor: [
-        {% for Color in Colors %}
+        {% for Color in data.Colors %}
         "rgb{{Color}}",
         {% endfor %}
         ],
         hoverOffset: 4
       }]
     };
-    const config = {
+    var config = {
       type: 'pie',
       data: data,
     };
-    const myChart = new Chart(ctx, config);
+    var myChart = new Chart(ctx, config);
 
   ///////////////
 
