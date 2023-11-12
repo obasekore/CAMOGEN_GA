@@ -2,7 +2,7 @@
   <div class="container position-relative">
     <div class="row">
       <div class="col">
-        {%if request.method == "POST"%}
+        
         <div>
           <canvas id="myChart"></canvas>
         </div>
@@ -26,61 +26,7 @@
           style="height: 180px"
         />
 
-        {%endif%}
-      </div>
-      <div class="col-md-6 col-xl-4">
-        <div>
-          <form
-            class="p-3 p-xl-4"
-            method="POST"
-            action=""
-            enctype="multipart/form-data"
-          >
-            {% csrf_token %}
-            <h4>Camouflage Generating Tool</h4>
-            <p class="text-muted">
-              This software uses machine learning to extract from image and
-              generates camouflage pattern with the colours.
-            </p>
-            <div class="mb-3">
-              <label class="form-label" for="no_colour"
-                >Number of Colours to Extract</label
-              ><input
-                class="form-control"
-                type="number"
-                name="no_colour"
-                value="5"
-                min="1"
-                max="10"
-                step="1"
-              />
-            </div>
-            <div class="mb-3">
-              <label class="form-label" for="bgImg">Select Source Image</label
-              ><input
-                class="form-control"
-                type="file"
-                name="bgImg"
-                accept="image/*"
-              />
-            </div>
-            <div class="mb-3"></div>
-            <div class="mb-3">
-              <button class="btn btn-primary" type="submit">Analyze</button>
-            </div>
-          </form>
-          {%if request.method == "POST"%}
-          <hr />
-          <ul id="sortable">
-            {% for Color in Colors %}
-            <li class="ui-state-default">
-              {{Color}}
-              <span style="background-color: rgb{{Color}}">&nbsp;.....</span>
-            </li>
-            {% endfor %}
-          </ul>
-          {%endif%}
-        </div>
+        
       </div>
     </div>
   </div>

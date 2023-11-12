@@ -8,6 +8,7 @@ from sklearn.cluster import KMeans
 from sympy.utilities.iterables import multiset_permutations
 import subprocess
 import json
+import os
 
 # Define the fitness function
 
@@ -40,8 +41,8 @@ else:
     app.debug = False
 
 fitnesses_from_user = []
-# os.path.join(os.path.dirname(os.path.abspath(__file__))
-BASE_DIR = 'static\\scene\\'
+home = os.path.join(os.path.dirname(os.path.abspath(__file__)))
+BASE_DIR = home+'/static/scene/'
 blender_scene = "static\\scene\\RecentSeamlessBackground_camoublend_withPython.blend"
 blender_script = "static\\scene\\blender_bakingScript.py"
 
@@ -73,7 +74,65 @@ def index():
 
 @app.route('/', methods=['POST'])
 def start():
-    return render_template('test.html', data={'start': True})
+    if request.method == 'POST':
+
+        background_name = 'u'
+        k_colours = request.form['colours']
+
+        if k_colours == '' or background_name == '':
+            return render_template('index.html', message='Please enter required fields')
+
+        f = request.files['background']
+
+        f = request.files['background']
+        imgByte = f.read()
+        nparr = np.fromstring(imgByte, np.uint8)
+        jpg_as_text = base64.b64encode(imgByte).decode('utf-8')
+
+        nparr = np.fromstring(imgByte, np.uint8)
+        img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+        img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        img_rgb_feature = img_rgb.reshape(
+            ((img_rgb.shape[0]*img_rgb.shape[1]), img_rgb.shape[2]))
+        clf = KMeans(n_clusters=int(k_colours))
+        clf.fit(img_rgb_feature)
+
+        hist = centroid_histogram(clf)
+        bar, colours, Color_percent = plot_colors(hist, clf.cluster_centers_)
+
+        # _p = [t['percent'] for t in Color_percent]
+        # _c = [t['color'] for t in Color_percent]
+        labels = []
+        sizes = []
+        Colors = []
+        rgbas = []
+        for color_dict in Color_percent:
+            Colors.append(tuple(color_dict['color']))
+            rgbas.append(tuple(np.array(color_dict['color'] + [255.0])/255.0))
+            labels.append(color_dict['label'])
+            sizes.append(color_dict['percent']*100)
+        # argv = [
+        #     str(BASE_DIR)+'\\static\\scene\\background.png', str(rgbas)]  # , '[(0.1,0,0,1);(0,0.2,0,1);(0,0,0.3,1);(0.1,0.2,0,1);(0.5,0,0.5,1)]'
+        # subprocess.run(["blender", "-b", 'static/scene/Background_camoublend_withPython.blend',
+        #                "-x", "1", "-o", "//rendered", "-a", '--enable-autoexec', ] + argv)
+        img_camo = cv2.imread(str(BASE_DIR)+'rendered0001.png')
+        retval, buffer = cv2.imencode('.png', img_camo)
+        img_camo_as_text = base64.b64encode(buffer).decode('utf-8')
+
+        soldier_camo = cv2.imread(
+            str(BASE_DIR)+'rendered0002.png')
+        retval, buffer = cv2.imencode('.png', soldier_camo)
+        soldier_camo_as_text = base64.b64encode(buffer).decode('utf-8')
+        data = {'k': k_colours,
+                'path': BASE_DIR,
+                'img': jpg_as_text,
+                'img_camo': img_camo_as_text,
+                'soldier_camo': soldier_camo_as_text,
+                'Colors': Colors,
+                'labels': labels,
+                'sizes': sizes}
+        return render_template('_analyse_design.html', data=data)
+    return render_template('_analyse_design.html')
     pass
 
 

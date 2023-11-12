@@ -2,3 +2,4 @@ pygad
 numpy
 flask
 sympy
+scikit-learn

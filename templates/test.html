@@ -32,61 +32,8 @@
           data-bs-dismiss="offcanvas"
         ></button>
       </div>
-      <!-- Button trigger modal -->
-      <button
-        type="button"
-        class="btn btn-primary"
-        id="triggerModal"
-        data-bs-toggle="modal"
-        data-bs-target="#exampleModal"
-      >
-        Launch demo modal
-      </button>
-      <button id="sudo">Click this</button>
-      <script>
-        $("#triggerModal").click(function () {
-          // setTimeout(() => {
-          //   console.log("World!");
-          // }, 2000);
-          // $("#closeSideBar").click();
-          // $("#triggerModal").click();
-        });
-      </script>
-      <!-- Modal -->
-      <div
-        class="modal fade"
-        id="exampleModal"
-        tabindex="-1"
-        aria-labelledby="exampleModalLabel"
-        aria-hidden="true"
-      >
-        <div class="modal-dialog">
-          <div class="modal-content">
-            <div class="modal-header">
-              <h5 class="modal-title" id="exampleModalLabel">Modal title</h5>
-              <button
-                type="button"
-                class="btn-close"
-                data-bs-dismiss="modal"
-                aria-label="Close"
-              ></button>
-            </div>
-            <div class="modal-body">...</div>
-            <div class="modal-footer">
-              <button
-                type="button"
-                class="btn btn-secondary"
-                data-bs-dismiss="modal"
-              >
-                Close
-              </button>
-              <button type="button" class="btn btn-primary">
-                Save changes
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
+
+
       <div class="offcanvas-body">
         <div id="accordion">
           <div class="card">
@@ -101,7 +48,7 @@
               data-bs-parent="#accordion"
             >
               <div class="card-body">
-                <form action="/" enctype="multipart/form-data" method="POST">
+                <form action="/" enctype="multipart/form-data" id="upload_form"  method="POST">
                   <div class="mb-3 mt-3">
                     <label for="k-colour" class="form-label"
                       >Number of Colour(s) to extract</label
@@ -132,7 +79,7 @@
                     />
                   </div>
                   <div class="mb-3 mt-3">
-                    <div class="form-check">
+                    <div class="form-check" id="option1">
                       <input
                         type="radio"
                         class="form-check-input"
@@ -145,7 +92,7 @@
                         >Analyse Design</label
                       >
                     </div>
-                    <div class="form-check">
+                    <div class="form-check" id="option2">
                       <input
                         type="radio"
                         class="form-check-input"
@@ -154,7 +101,7 @@
                         value="GA_design"
                       />
                       <label class="form-check-label" for="radio2"
-                        >Genetic Evolution Design</label
+                        >Evolution Design</label
                       >
                     </div>
                   </div>
@@ -162,305 +109,23 @@
                   <div class="mb-3 mt-3">
                     <input
                       type="submit"
-                      value="Submit"
+                      name="GA"
+                      value="Initialize Evolution Design"
                       class="btn btn-primary w-100 py-2"
+                      id="btnSubmit"
                     />
-                    <button
-                      type="button"
-                      class="btn btn-primary"
-                      id="myModalTrigger"
-                      data-bs-target="#myModal"
-                      data-bs-toggle="modal"
-                    >
-                      Open Last Analysis
-                    </button>
-                  </div>
-                </form>
-              </div>
-            </div>
-          </div>
-          {%if data.start!=True%}
-          <div class="card">
-            <div class="card-header">
-              <a
-                class="collapsed btn"
-                data-bs-toggle="collapse"
-                href="#collapseTwo"
-              >
-                Top 10 Individuals
-              </a>
-            </div>
-            <div id="collapseTwo" class="collapse" data-bs-parent="#accordion">
-              <div class="card-body">
-                <form name="ga_evolve" enctype="text/plain" method="get">
-                  <div class="row" id="imageStrip">
-                    <div class="col section" id="section0">
-                      <img
-                        alt="img_gene_0"
-                        class="img-thumbnail"
-                        src="../static/scene/gene_0.png"
-                        id="img_gene_0"
-                        width="200"
-                      />
-                      <br />
-                      <label for="auto_fitness_0">Fitness Score:</label> <br />
-                      <input
-                        readonly="readonly"
-                        type="number"
-                        id="auto_fitness_0"
-                        name="fitness[0]"
-                        value="0"
-                        max="100"
-                        step="0.01"
-                        onClick="clearTimer(0)"
-                      />
-                      <a
-                        href="../static/scene/gene_0.png"
-                        class="btn btn-primary mt-2"
-                        target="_blank"
-                        >Download Hi-Res</a
-                      >
-                    </div>
 
-                    <div class="col section" id="section1">
-                      <img
-                        alt="img_gene_1"
-                        class="img-thumbnail"
-                        src="../static/scene/gene_1.png"
-                        id="img_gene_1"
-                        width="200"
-                      /><br />
-                      <label for="auto_fitness_1">Fitness Score:</label> <br />
-                      <input
-                        readonly="readonly"
-                        type="number"
-                        id="auto_fitness_1"
-                        name="fitness[1]"
-                        value="0"
-                        max="100"
-                        step="0.01"
-                        onClick="clearTimer(1)"
-                      />
-                      <a
-                        href="../static/scene/gene_1.png"
-                        class="btn btn-primary"
-                        target="_blank"
-                        >Download Hi-Res</a
-                      >
-                    </div>
-                    <div class="col section" id="section2">
-                      <img
-                        alt="img_gene_2"
-                        class="img-thumbnail"
-                        src="../static/scene/gene_2.png"
-                        id="img_gene_2"
-                        width="200"
-                      /><br />
-                      <label for="auto_fitness_2">Fitness Score:</label> <br />
-                      <input
-                        readonly="readonly"
-                        type="number"
-                        id="auto_fitness_2"
-                        name="fitness[2]"
-                        value="0"
-                        max="100"
-                        step="0.01"
-                        onClick="clearTimer(2)"
-                      />
-                      <a
-                        href="../static/scene/gene_2.png"
-                        class="btn btn-primary"
-                        target="_blank"
-                        >Download Hi-Res</a
-                      >
-                    </div>
-                    <div class="col section" id="section3">
-                      <img
-                        alt="img_gene_3"
-                        class="img-thumbnail"
-                        src="../static/scene/gene_3.png"
-                        id="img_gene_3"
-                        width="200"
-                      /><br />
-                      <label for="auto_fitness_3">Fitness Score:</label> <br />
-                      <input
-                        readonly="readonly"
-                        type="number"
-                        id="auto_fitness_3"
-                        name="fitness[3]"
-                        value="0"
-                        max="100"
-                        step="0.01"
-                        onClick="clearTimer(3)"
-                      />
-                      <a
-                        href="../static/scene/gene_3.png"
-                        class="btn btn-primary"
-                        target="_blank"
-                        >Download Hi-Res</a
-                      >
-                    </div>
-                    <div class="col section" id="section4">
-                      <img
-                        alt="img_gene_4"
-                        class="img-thumbnail"
-                        src="../static/scene/gene_4.png"
-                        id="img_gene_4"
-                        width="200"
-                      /><br />
-                      <label for="auto_fitness_4">Fitness Score:</label> <br />
-                      <input
-                        readonly="readonly"
-                        type="number"
-                        id="auto_fitness_4"
-                        name="fitness[4]"
-                        value="0"
-                        max="100"
-                        step="0.01"
-                        onClick="clearTimer(4)"
-                      />
-                      <a
-                        href="../static/scene/gene_4.png"
-                        class="btn btn-primary"
-                        target="_blank"
-                        >Download Hi-Res</a
-                      >
-                    </div>
-                    <div class="col section" id="section5">
-                      <img
-                        alt="img_gene_5"
-                        class="img-thumbnail"
-                        src="../static/scene/gene_5.png"
-                        id="img_gene_5"
-                        width="200"
-                      /><br />
-                      <label for="auto_fitness_5">Fitness Score:</label> <br />
-                      <input
-                        readonly="readonly"
-                        type="number"
-                        id="auto_fitness_5"
-                        name="fitness[5]"
-                        value="0"
-                        max="100"
-                        step="0.01"
-                        onClick="clearTimer(5)"
-                      />
-                      <a
-                        href="../static/scene/gene_5.png"
-                        class="btn btn-primary"
-                        target="_blank"
-                        >Download Hi-Res</a
-                      >
-                    </div>
-                    <div class="col section" id="section6">
-                      <img
-                        alt="img_gene_6"
-                        class="img-thumbnail"
-                        src="../static/scene/gene_6.png"
-                        id="img_gene_6"
-                        width="200"
-                      /><br />
-                      <label for="auto_fitness_6">Fitness Score:</label> <br />
-                      <input
-                        readonly="readonly"
-                        type="number"
-                        id="auto_fitness_6"
-                        name="fitness[6]"
-                        value="0"
-                        max="100"
-                        step="0.01"
-                        onClick="clearTimer(6)"
-                      />
-                      <a
-                        href="../static/scene/gene_6.png"
-                        class="btn btn-primary"
-                        target="_blank"
-                        >Download Hi-Res</a
-                      >
-                    </div>
-                    <div class="col section" id="section7">
-                      <img
-                        alt="img_gene_7"
-                        class="img-thumbnail"
-                        src="../static/scene/gene_7.png"
-                        id="img_gene_7"
-                        width="200"
-                      /><br />
-                      <label for="auto_fitness_7">Fitness Score:</label> <br />
-                      <input
-                        readonly="readonly"
-                        type="number"
-                        id="auto_fitness_7"
-                        name="fitness[7]"
-                        value="0"
-                        max="100"
-                        step="0.01"
-                        onClick="clearTimer(7)"
-                      />
-                      <a
-                        href="../static/scene/gene_7.png"
-                        class="btn btn-primary"
-                        target="_blank"
-                        >Download Hi-Res</a
-                      >
-                    </div>
-                    <div class="col section" id="section8">
-                      <img
-                        alt="img_gene_8"
-                        class="img-thumbnail"
-                        src="../static/scene/gene_8.png"
-                        id="img_gene_8"
-                        width="200"
-                      /><br />
-                      <label for="auto_fitness_8">Fitness Score:</label> <br />
-                      <input
-                        readonly="readonly"
-                        type="number"
-                        id="auto_fitness_8"
-                        name="fitness[8]"
-                        value="0"
-                        max="100"
-                        step="0.01"
-                        onClick="clearTimer(8)"
-                      />
-                      <a
-                        href="../static/scene/gene_8.png"
-                        class="btn btn-primary"
-                        target="_blank"
-                        >Download Hi-Res</a
-                      >
-                    </div>
-                    <div class="col section" id="section9">
-                      <img
-                        alt="img_gene_9"
-                        class="img-thumbnail"
-                        src="../static/scene/gene_9.png"
-                        id="img_gene_9"
-                        width="200"
-                      /><br />
-                      <label for="auto_fitness_9">Fitness Score:</label> <br />
-                      <input
-                        readonly="readonly"
-                        type="number"
-                        id="auto_fitness_9"
-                        name="fitness[9]"
-                        value="0"
-                        max="100"
-                        step="0.01"
-                        onClick="clearTimer(9)"
-                      />
-                      <a
-                        href="../static/scene/gene_9.png"
-                        class="btn btn-primary"
-                        target="_blank"
-                        >Download Hi-Res</a
-                      >
-                    </div>
+                  </div>
+                  <div class="mb-3 mt-3">
+                    <button class="btn btn-success w-100 py-2" type="button" data-bs-toggle="offcanvas" data-bs-target="#demo2" id="lastAnalysis">Open Last Analysis</button>
                   </div>
                 </form>
               </div>
             </div>
           </div>
+          
+          {%if data.start!=True%}
+ghtxchtdhjtfh
           {%endif%}
         </div>
 
@@ -510,28 +175,9 @@
       <span class="badge bg-success" id="individual_clicked">0</span>/10
     </button>
     {%if data.start!=True%}
-    <div class="modal" id="myModal">
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <!-- Modal Header -->
-          <div class="modal-header">
-            <h4 class="modal-title">Design Analysis</h4>
-            <button class="btn-close" type="button" data-bs-dismiss="modal">
-              .
-            </button>
-          </div>
+hdhdhdhjh
 
-          <!-- Modal Body -->
-          <div class="modal-body">No Design Yet...</div>
 
-          <div class="modal-footer">
-            <button class="btn btn-danger" data-bs-dismiss="modal">
-              Close
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
     <script>
       var interval2 = [];
       const max_height = $("#background").innerHeight() - 50;
@@ -597,11 +243,50 @@
         randomlyPlaceIndividual();
       });
     </script>
-    {%endif%}
+    {%endif%}    
+    <div class="offcanvas offcanvas-top" id="demo2">
+      <div class="offcanvas-header">
+        <h1 class="offcanvas-title">Design Analysis</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+      </div>
+      <div class="offcanvas-body" id="view_analyse_design">
+        <p>No Design Yet...</p>
+      </div>
+    </div>
     <script>
       $(document).ready(function () {
         $("#show_sideBaar").click();
       });
+
+$('#btnSubmit').click(function(e){
+    e.preventDefault();
+    var form = $('#upload_form')[0]; // You need to use standard javascript object here
+    var formData = new FormData(form);
+    urlLink = (formData.get('optMethod')=='GA_design')? '/evolve': '/';
+    $.ajax({
+        url: urlLink,
+        data: formData,
+        type: 'POST',
+        contentType: false, // NEEDED, DON'T OMIT THIS (requires jQuery 1.6+)
+        processData: false, // NEEDED, DON'T OMIT THIS
+        // ... Other options like success and etc
+        success: function (data) {
+          if(formData.get('optMethod')=='analyse_design'){
+
+            $('#view_analyse_design').html(data)
+            $('#lastAnalysis').click()
+          }
+            console.log(data);
+        },
+    });
+})
+
+$('#option1').click(function(){
+  $('#btnSubmit').val('Analyse Design')
+})
+$('#option2').click(function(){
+  $('#btnSubmit').val('Initialize Evolution Design')
+})
     </script>
   </body>
 </html>
