@@ -78,6 +78,22 @@
                       accept="*.png"
                     />
                   </div>
+
+                  <div class="mb-3 mt-3">
+                    <label for="select-population" class="form-label"
+                      >Select sample population for analysis</label
+                    >
+                    <select name="sample_population" onchange="updateColorBar(this.value)" class="form-control"
+                    id="select-population">
+
+                    </select>
+                    
+                    <div class="progress" id="population-color">
+
+                    </div>
+
+                  </div>
+
                   <div class="mb-3 mt-3">
                     <div class="form-check" id="option1">
                       <input
@@ -120,6 +136,23 @@
                     <button class="btn btn-success w-100 py-2" type="button" data-bs-toggle="offcanvas" data-bs-target="#demo2" id="lastAnalysis">Open Last Analysis</button>
                   </div>
                 </form>
+              </div>
+            </div>
+          </div>
+          
+          <div class="card">
+            <div class="card-header">
+              <a class="btn" data-bs-toggle="collapse" href="#collapseTwo">
+                Sample Population
+              </a>
+            </div>
+            <div
+              id="collapseTwo"
+              class="collapse"
+              data-bs-parent="#accordion"
+            >
+              <div class="card-body" id="view_population" style="display: none;">
+                {% include '_sample_population.html'%}
               </div>
             </div>
           </div>
@@ -173,6 +206,7 @@ ghtxchtdhjtfh
     >
       Evolve <span class="badge bg-danger">4</span>
       <span class="badge bg-success" id="individual_clicked">0</span>/10
+      <div id="spinner" class=""></div>
     </button>
     {%if data.start!=True%}
 hdhdhdhjh
@@ -244,7 +278,7 @@ hdhdhdhjh
       });
     </script>
     {%endif%}    
-    <div class="offcanvas offcanvas-top" id="demo2">
+    <div class="offcanvas offcanvas- h-auto" id="demo2">
       <div class="offcanvas-header">
         <h1 class="offcanvas-title">Design Analysis</h1>
         <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
@@ -253,6 +287,90 @@ hdhdhdhjh
         <p>No Design Yet...</p>
       </div>
     </div>
+
+    <script>
+      var interval2 = [];
+      const max_height = $("#background").innerHeight() - 50;
+      const max_width = $("#background").innerWidth() - 50;
+      const individual_size = 50;
+      var colours = [];
+      var percent = [];
+      function evolve() {
+        var params = "";
+        for (var i = 0; i < document.ga_evolve.elements.length; i++) {
+          var fieldName = document.ga_evolve.elements[i].name;
+          var fieldValue = document.ga_evolve.elements[i].value;
+
+          params += fieldName + "=" + fieldValue + "&";
+        }
+        $.get("/evolve_clicked?" + params, function (data, status) {
+          alert("Data: " + data + "\nStatus: " + status);
+          randomlyPlaceIndividual();
+          $("#individual_clicked").text("0");
+        });
+      }
+      function randomIntFromInterval(min, max) {
+        // min and max included
+        return Math.floor(Math.random() * (max - min + 1) + min);
+      }
+      function clearTimer(i) {
+        clearInterval(interval2[i]);
+        val = parseInt($("#individual_clicked").text());
+        val += 1;
+        $("#individual_clicked").text(val);
+      }
+      function counters2(i = 0) {
+        val = $("#auto_fitness_" + i).val();
+        //.getAttribute("value");
+        step = $("#auto_fitness_" + i).attr("step");
+
+        val = parseFloat(val) + parseFloat(step);
+        $("#auto_fitness_" + i).val(val);
+        //}
+      }
+      function randomlyPlaceIndividual(params = 0) {
+        var template = "";
+        var text = "";
+
+        for (cnt = 0; cnt < 10; cnt++) {
+          x = randomIntFromInterval(0, max_width);
+          y = randomIntFromInterval(0, max_height);
+          text = `<img
+            src="../static/scene/gene_${cnt}.png"
+            style="position: absolute; width: ${individual_size}px; top: ${y}px; left: ${x}px"
+            onClick="clearTimer(${cnt})"
+            />`;
+          template += text;
+          interval2[cnt] = setInterval(counters2, 10, cnt);
+        }
+        // var template = $("#img_indiv_0").html();
+        // var $elem = $(template);
+        // $elem.css("width: 20px");
+        //var template = $elem.get(0).outerHTML
+        console.log(x, y, max_height, max_width, template);
+        $("#background").html(template);
+      }
+      const rgbToHex = (r, g, b) => '#' + [r, g, b].map(x => {
+      const hex = x.toString(16)
+      return hex.length === 1 ? '0' + hex : hex
+    }).join('')
+      $(document).ready(function () {
+        // randomlyPlaceIndividual();
+      });
+      function updateColorBar(sampleID) {
+        colour = colours[sampleID]
+        perc = percent[sampleID]
+        txtHTML = ""
+        for (i=0;i<colour.length;i++){
+          txtHTML +=`<div class="progress-bar  progress-bar-striped" style="background-color: rgb(${colour[i]}) !important;width:${perc[i]*100}%">
+            ${parseInt(perc[i]*100)}%
+                      </div>`
+        }
+        console.log(txtHTML)
+        $('#population-color').html(txtHTML)
+      }
+    </script>
+    
     <script>
       $(document).ready(function () {
         $("#show_sideBaar").click();
@@ -263,13 +381,14 @@ $('#btnSubmit').click(function(e){
     var form = $('#upload_form')[0]; // You need to use standard javascript object here
     var formData = new FormData(form);
     urlLink = (formData.get('optMethod')=='GA_design')? '/start': '';
+    $('#spinner').addClass('spinner-grow text-success')
     $.ajax({
         url: urlLink,
         data: formData,
         type: 'POST',
-        contentType: false, // NEEDED, DON'T OMIT THIS (requires jQuery 1.6+)
-        processData: false, // NEEDED, DON'T OMIT THIS
-        // ... Other options like success and etc
+        contentType: false, 
+        processData: false, 
+        
         success: function (data) {
           if(formData.get('optMethod')=='analyse_design'){
             
@@ -281,8 +400,36 @@ $('#btnSubmit').click(function(e){
             $('#view_analyse_design').html(data)
             $('#lastAnalysis').click()
           }
-            console.log(data);
+          else if(formData.get('optMethod')=="GA_design"){
+            // data:image/png;base64, {{data.soldier_camo}}
+            // resp = $.parseJSON(data)
+            resp = data
+            // console.log(resp);
+            colours = resp.genes
+            percent = resp.percent
+            base64String = resp.img_text
+            $('#background').css('background-image', "url('data:image/png;base64," + base64String + "')")
+            randomlyPlaceIndividual();
+            txtHTML = ""
+            for (i=0;i<colours.length;i++){
+              txtHTML += `<option value="${i}">Population ${i}</option>`
+            }
+
+            $('#select-population').html(txtHTML)
+
+            $('#view_population').css('display','block')
+            $('#collapseOne').removeClass('show')
+            $('#collapseTwo').addClass('show')
+            $("#show_sideBaar").click();
+          }
+            // console.log(data);
+            $('#spinner').removeClass('spinner-grow text-warning')
         },
+        error: function(error){
+         console.log("Error:");
+         console.log(error);
+         $('#spinner').removeClass('spinner-grow text-warning')
+    }
     });
 })
 

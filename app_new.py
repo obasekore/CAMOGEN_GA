@@ -298,7 +298,8 @@ def startGA():
         'generations': ga_instance.generations_completed
     }
     # templates\start_ga_autofitnessUntil_clicked.html
-    return render_template('start_ga_autofitnessUntil_clicked.html', data={'population': data})
+    # return render_template('start_ga_autofitnessUntil_clicked.html', data={'population': data})
+    return jsonify(data)
 
 
 @app.route('/home', methods=['GET'])
